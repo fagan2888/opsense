@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    
+    
+<title>Yelp</title>
+    
+</head>
+
+<body>
+    <nav class="navbar navbar-default" role="navigation" style="margin-bottom: 2px;">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+
+          <a class="navbar-brand" href="#">Yelp - Analisys</a>
+        </div>
+
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Word Order<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#" onclick="sortWords('avg')">Avg. Rating</a></li>
+                <li><a href="#" onclick="sortWords('count')">Reviews Count.</a></li>
+                <li><a href="#" onclick="sortWords('popular')">Popularity</a></li>
+              </ul>
+            </li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Business Order<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#" onclick="sortBussiness('Reviews')">Num. Reviews</a></li>
+                <li><a href="#" onclick="sortBussiness('Stars')">Rating</a></li>
+                <li><a href="#" onclick="sortBussiness('SelWordCount')">Words Count</a></li>
+                <li role="presentation" class="divider"></li>
+                <li><a href="#" onclick="sortBussiness('SimAvgInReviews')">Similarity - Avg. per Reviews</a></li>
+                  <li><a href="#" onclick="sortBussiness('SimAvgRating')">Similarity - Rating</a></li>
+                  <li><a href="#" onclick="sortBussiness('SimPercentOfReviews')">Similarity - Percent of Reviews</a></li>
+                  <li><a href="#" onclick="sortBussiness('SimReviews')">Similarity - Reviews</a></li>
+                  <li><a href="#" onclick="sortBussiness('SimTotal')">Similarity - Total</a></li>
+              </ul>
+                
+
+           
+            </li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Set Fill<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#" onclick="setFill('AvgRating')">Rating</a></li>
+                <li><a href="#" onclick="setFill('AvgInReviews')">Average per Review</a></li>
+                <li><a href="#" onclick="setFill('Reviews')">Num. Reviews</a></li>
+                  <li><a href="#" onclick="setFill('PercentOfReviews')">Percent of Reviews</a></li>
+                  <li><a href="#" onclick="setFill('Total')">Total</a></li>
+              </ul>
+            </li>
+          </ul>
+            <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" id="srch" placeholder="Search">
+        </div>
+        
+      </form>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#" id="progress"></a></li>
+                
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+    <div style="text-align: center">
+        <svg style='stroke-width: 0px; background-color: white;'> </svg>
+    </div>
+    
+        <!--Modal -->
+    <div id="modalDlg" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title">Modal title</h4>
+          </div>
+          <div class="modal-body">
+            <p>One fine body&hellip;</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="btnreviews">Reviews</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    
+    
+    <div id="modalDlgReviews" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title">Modal title</h4>
+          </div>
+          <div class="modal-body">
+            <ul>
+              <li></li>
+              </ul>
+          </div>
+          <div class="modal-footer">
+
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    
+</body>
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="high.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script>
+        
+
+        var x = {};
+        var Matrix = [];
+        var squareWidth = 5,
+            squareWidthTot = squareWidth+1;
+        var tipoValue = 'AvgRating';
+        var rating = d3.scale.linear()
+        .domain([0,1,3,5])
+        .range(["white","#f1a340", "#f7f7f7" ,"#998ec3"]);
+        
+        
+        var position = [];
+        var positionB = [];
+        var Statistics = {};
+        d3.json("data.json", function(error, data) {
+            data = data[0];
+            var count = 0;
+            
+            //createMatrix(data);
+            Matrix = data.Matrix;
+            console.log(Matrix[2][0]);
+            console.log(Matrix[2][1]);
+            console.log(Matrix[0][1]);
+            console.log(data.Statistcs);
+            Statistics = data.Statistcs;
+            createViz(Matrix);
+        });
+        
+        function setFill(type){
+            tipoValue = type;
+             var t = d3.select("svg").transition().duration(2000);
+                    t.selectAll("g").selectAll("rect")
+                        .attr("fill",function(d,i){if(i==0) return "#FFF"; return fill(d)})
+        }
+        
+        function sortBussiness(type){
+            var temp = positionB.slice(1, positionB.length);
+            
+            
+           
+
+            
+            
+            if(type == 'Reviews')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[0][a].Reviews < Matrix[0][b].Reviews)
+                        return 1;
+                    if(Matrix[0][a].Reviews > Matrix[0][b].Reviews)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            
+            if(type == 'SimAvgInReviews')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[0][a].SimAvgInReviews > Matrix[0][b].SimAvgInReviews)
+                        return 1;
+                    if(Matrix[0][a].SimAvgInReviews < Matrix[0][b].SimAvgInReviews)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            if(type == 'SimAvgRating')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[0][a].SimAvgRating > Matrix[0][b].SimAvgRating)
+                        return 1;
+                    if(Matrix[0][a].SimAvgRating < Matrix[0][b].SimAvgRating)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            if(type == 'SimPercentOfReviews')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[0][a].SimPercentOfReviews > Matrix[0][b].SimPercentOfReviews)
+                        return 1;
+                    if(Matrix[0][a].SimPercentOfReviews < Matrix[0][b].SimPercentOfReviews)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            if(type == 'SimReviews')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[0][a].SimReviews > Matrix[0][b].SimReviews)
+                        return 1;
+                    if(Matrix[0][a].SimReviews < Matrix[0][b].SimReviews)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            if(type == 'SimTotal')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[0][a].SimTotal > Matrix[0][b].SimTotal)
+                        return 1;
+                    if(Matrix[0][a].SimTotal < Matrix[0][b].SimTotal)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            
+            if(type == 'SelWordCount')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[0][a].SelWordCount < Matrix[0][b].SelWordCount)
+                        return 1;
+                    if(Matrix[0][a].SelWordCount > Matrix[0][b].SelWordCount)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            
+            if(type == 'Stars')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[0][a].Stars < Matrix[0][b].Stars)
+                        return 1;
+                    if(Matrix[0][a].Stars > Matrix[0][b].Stars)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            
+            positionB = [];
+            positionB.push(0);
+            positionB = positionB.concat(temp);
+            var t = d3.select("svg").transition().duration(1000);
+                    
+                    t.selectAll("g").selectAll("rect")
+                        .attr("x", function(o,i){return  positionB.indexOf(i)*squareWidthTot}) //create Function
+            
+        }
+        
+        function sortWords(type){
+            var temp = position.slice(1, position.length);
+            if(type == 'avg')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[a][0].AvgRating < Matrix[b][0].AvgRating)
+                        return 1;
+                    if(Matrix[a][0].AvgRating > Matrix[b][0].AvgRating)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            
+            if(type == 'alpha')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Matrix[a][0].Word > Matrix[b][0].Word)
+                        return 1;
+                    if(Matrix[a][0].Word < Matrix[b][0].Word)
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            if(type == 'count')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Number(Matrix[a][0].Reviews) < Number(Matrix[b][0].Reviews))
+                        return 1;
+                    if(Number(Matrix[a][0].Reviews) > Number(Matrix[b][0].Reviews))
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            if(type == 'popular')
+            {
+                temp.sort(function(a,b){
+                    
+                    if(Number(Matrix[a][0].Business) < Number(Matrix[b][0].Business))
+                        return 1;
+                    if(Number(Matrix[a][0].Business) > Number(Matrix[b][0].Business))
+                        return -1;
+                   
+                        return 0;
+                });
+            }
+            
+            
+            
+            
+            position = [];
+            position.push(0);
+            position = position.concat(temp);
+            var t = d3.select("svg").transition().duration(1000);
+                    
+                    t.selectAll("g")
+                        .attr("transform", function(d, i) { return "translate(0," + (position.indexOf(i)*squareWidthTot) + ")"; })
+            
+            
+        }
+        var srch = "";
+        function createViz(Matrix){
+            console.log('CreatingViz')
+            position = d3.range(Matrix.length);
+            positionB = d3.range(Matrix[0].length);
+            var 
+                w = window.innerWidth,
+                h = window.innerHeight,
+                toobarHeigth= 60,
+                
+                width = w,
+                height = h;
+                
+            
+            d3.select("#srch").on("keyup", function (a,b,c,d){
+               srch = this.value;
+               
+                d3.select("svg").selectAll("g").selectAll(".word")
+                    .attr("fill",
+                            function(d,i){ 
+                                if(d.Word.indexOf(srch) > -1 && srch !="")
+                                    return "#000";
+                                return "#FFF"
+                            })
+                    .attr("fill-opacity",
+                            function(d,i){ 
+                                if(d.Word.indexOf(srch) > -1)
+                                    return 1;
+                                return 0
+                            });
+                
+                
+                //.attr("fill",function(d,i){if(i==0 && srch != "" && d.Word.contains(srch)) return "#efca00";
+                ///                                     if(i==0) return "#FFF"; 
+                //                                     return fill(d)})
+            })
+            
+            
+            var svg = d3.select("svg").attr("width", width).attr("height", (height-toobarHeigth));
+            svg.append("rect").attr("x",-100)
+                .attr("y",0)
+                .attr("width",squareWidthTot+1)
+                .attr("height",h)
+                .attr("fill","#ccc")
+                .attr("class","vertBar");
+            
+            svg.append("rect").attr("x",0)
+                .attr("y",-10)
+                .attr("width",w)
+                .attr("height",squareWidthTot+1)
+                .attr("fill","#ccc")
+                .attr("class","horizBar");
+            
+           
+            
+            svg.selectAll("g")
+                .data(Matrix) 
+                .enter()
+                .append("g")
+                .attr("height",squareWidthTot)
+                .attr("width",width)
+                .attr("transform", function(a,idx){ return "translate(0,"+ (position.indexOf(idx)*squareWidthTot) +")"})
+                
+                .each(function(obj, idx){
+                    if(idx != 0){ //draw Line
+                        d3.select(this)
+                          .selectAll("rect")
+                          .data(obj)
+                          .enter()
+                          .append("rect")
+                          .attr("class", function(d,i){if(i==0) return "word"; return "relation"; })
+                          .attr("x", function(o,i){return  positionB.indexOf(i)*squareWidthTot}) //create Function
+                          .attr("y",0)
+                          .attr("height",squareWidth)
+                          .attr("width",squareWidth)
+                          .attr("fill",function(d,i){if(i==0) return "#FFF"; return fill(d)})
+                          .on("mouseover",function(a,i){ 
+                                
+                                document.getElementById("progress").innerHTML = "<b>Word</b>: "+ a.Word + "/ <b>Business:</b> "+ a.Business;
+                                d3.select(".vertBar").attr("x",function(o){return  positionB.indexOf(i)*squareWidthTot-1}); 
+                                d3.select(".horizBar").attr("y",function(o){return  position.indexOf(idx)*squareWidthTot-1});
+                           })
+                          .on("mouseout",function(a,i){ 
+                                
+                                document.getElementById("progress").innerHTML = "";
+                                d3.select(".vertBar").attr("x",-100); 
+                                d3.select(".horizBar").attr("y",-100);
+                           })
+                          .on("click", function(a, i){
+                                if (d3.event.shiftKey) {
+                                    console.log('ShiftDetectado');
+                                    mid = a.AvgInReviews;
+                                    console.log(mid);
+                                    setFill(tipoValue);
+                                    mid = 0;
+                                } else
+                                if (d3.event.altKey) {
+                                    
+                                    console.log('Excluir linha ' + idx);
+                                    var p = position.indexOf(idx);
+                                    position.splice(p,1);
+                                     var t = d3.select("svg").transition().duration(1000);
+                    
+                                            t.selectAll("g")
+                                            .attr("transform", function(d, i) { return "translate(0," + (position.indexOf(i)*squareWidthTot) + ")"; })
+                                   
+                                }
+                            else {
+
+                                    $('#modalDlg .modal-title').text( a.Word + " / "+ a.Business);
+                                    $('#modalDlg .modal-body').html("");
+                                
+                                    
+                                    d3.select('#modalDlg .modal-body').append("h4").text("Business: "+a.Business);
+                                    d3.select('#modalDlg .modal-body').append("span").text(" - Rating: "+ Matrix[0][i].Stars 
+                                                                                           +" / Reviews: "+ Matrix[0][i].Reviews
+                                                                                           +" / Words: " + Matrix[0][i].SelWordCount);
+                                
+                                    d3.select('#modalDlg .modal-body').append("h4").text("Word:" + a.Word);
+                                    d3.select('#modalDlg .modal-body').append("span").text(" - Rating: "+ Matrix[idx][0].AvgRating.toFixed(1) 
+                                                                                           +" / Reviews: "+ Matrix[idx][0].Reviews
+                                                                                           +" / Business: " + Matrix[idx][0].Business);
+                                    
+                                    d3.select('#modalDlg .modal-body').append("h4").text("Relation");
+                                
+                                    var ul = d3.select('#modalDlg .modal-body').append("ul");
+                                    ul.append("li").text('Avg. per review: ' + a.AvgInReviews.toFixed(2));
+                                    ul.append("li").text('Avg. rating: ' + a.AvgRating.toFixed(1));
+                                    ul.append("li").text('Percent of reviews: ' + (( a.PercentOfReviews*100).toFixed(3)) + '%');
+                                    ul.append("li").text('Num. Reviews: ' + a.Reviews);
+                                    ul.append("li").text('Count: ' + a.Total);
+
+                                    $('#modalDlg').modal('show');
+                                    
+                                    d3.select('#btnreviews').on('click', function(){
+                                        var word = prompt("Fix word", a.Word);
+                                        if(!word)
+                                            return;
+                                        d3.json("data/reviews/"+a.business_id+"/" + word,function(err, result){
+                                            
+                                            
+                                            var ul = d3.select("#modalDlgReviews ul");
+                                            ul.text("");
+                                            result.forEach(function(item){
+                                                
+                                                ul.append("li").text("("+item.stars+" stars) " + item.text);
+                                            });
+                                            
+                                                var myHilitor = new Hilitor("modalDlgReviews");
+                                                myHilitor.setMatchType("left");
+                                                myHilitor.apply(word); 
+                                           
+                                            $('#modalDlgReviews').modal('show');
+                                        });
+                                        
+                                    })
+                                
+                                    
+                                }
+                          });
+                        //<rect x="110" y="110" height="30" width="30" fill="blue" />
+                    }
+                }); //replace with function
+            console.log('Done')
+        }
+        var mid = 0;
+        function fill(d){
+            if(tipoValue == 'AvgRating'){
+                try{ return rating(d.AvgRating)} catch(e){console.log(d); return "white"}
+            }
+            else if(tipoValue == 'AvgInReviews'){
+                var scale = undefined;
+                if(mid > 0)
+                {
+                     var scale = d3.scale.linear()
+                            .domain([Statistics.MaxAvgInReviews*5,mid,0])
+                            .range(["#000022","#1f77b4", "white"]);
+                }else{
+                    var scale = d3.scale.linear()
+                            .domain([Statistics.MaxAvgInReviews*5,0])
+                            .range(["#08519c", "white"]);
+                }
+       
+                return(scale(d.AvgInReviews));
+            }
+            else if(tipoValue == 'PercentOfReviews'){
+                var scale = d3.scale.linear()
+                            .domain([Statistics.MaxPercentOfReviews*30,0])
+                            .range(["#08519c", "white"]);
+                return(scale(d.PercentOfReviews));
+                
+            }
+            else if(tipoValue == 'Reviews'){
+                var scale = d3.scale.linear()
+                            .domain([Statistics.MaxReviews,0])
+                            .range(["#08519c", "white"]);
+                return(scale(d.Reviews));
+                
+            }
+            
+           
+
+
+
+
+            
+            else if(tipoValue == 'Total'){
+                if(mid > 0)
+                {
+                     var scale = d3.scale.linear()
+                            .domain([Statistics.MaxTotal,mid,0])
+                            .range(["#000022","#1f77b4", "white"]);
+                }else{
+                    var scale = d3.scale.linear()
+                            .domain([Statistics.MaxTotal,
+                                     Statistics.MaxTotal*0.1,
+                                     Statistics.MaxTotal*0.01,
+                                     Statistics.MaxTotal*0.005,
+                                     1,
+                                     0])
+                            .range(["#253494","#2c7fb8","#41b6c4","#a1dab4","#ffffcc", "white"]);
+                }
+                return(scale(d.Total));
+                
+            }
+            
+             
+           
+            
+            
+        }
+        
+        function createMatrix(data){
+            console.log('Creating Matrix');
+            
+            businesses = Matrix[0] = [];
+            businesses.push({});
+            data.Business.forEach(function(business){
+                businesses.push(business);
+            });
+            data.Dictionary.forEach(function(word){
+                var line = [];
+                line.push(word);
+                Matrix.push(line);
+            });
+            for(var y = 1; y <= data.Business.length; y++)
+            {
+                
+                for(var x = 1; x <= data.Dictionary.length; x++){
+                    try{
+                        Matrix[x][y] = findLink(data.Links,Matrix[0][y],Matrix[x][0]);
+                    }catch (e) {
+                        console.log(Matrix)
+                    }
+                }
+                
+                
+            }
+            console.log(Matrix[0][50]);
+            console.log(Matrix[70][0]);
+            console.log(Matrix[70][50]);
+            console.log(findLink(data.Links, Matrix[0][50], Matrix[70][0]));
+            console.log('Matrix created');
+        
+        }
+        function findLink(Links, business, word){
+            return Links.filter(function (l){
+                return l.business_id == business.business_id && l.Word == word.Word;
+            })[0];
+        }
+        
+        function shuffle(o){ //v1.0
+            for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+            return o;
+        };
+    </script>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
