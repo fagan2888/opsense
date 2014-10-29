@@ -7,12 +7,7 @@
     
     
 <title>Yelp</title>
-    <style type="text/css">
-    .sub, .category{
-        stroke-width:1;
-        stroke:rgb(255,255,255)
-    }
-    </style>
+    
 </head>
 
 <body>
@@ -41,8 +36,6 @@
                 <li><a href="#" onclick="sortBussiness('Reviews')">Num. Reviews</a></li>
                 <li><a href="#" onclick="sortBussiness('Stars')">Rating</a></li>
                 <li><a href="#" onclick="sortBussiness('SelWordCount')">Words Count</a></li>
-                <li><a href="#" onclick="sortBussiness('Category')">Category</a></li>
-                
                 <li role="presentation" class="divider"></li>
                 <li><a href="#" onclick="sortBussiness('SimAvgInReviews')">Similarity - Avg. per Reviews</a></li>
                   <li><a href="#" onclick="sortBussiness('SimAvgRating')">Similarity - Rating</a></li>
@@ -66,10 +59,8 @@
             </li>
           </ul>
             <form class="navbar-form navbar-left" role="search">
-
         <div class="form-group">
           <input type="text" class="form-control" id="srch" placeholder="Search">
-          
         </div>
         
       </form>
@@ -81,8 +72,7 @@
       </div><!-- /.container-fluid -->
     </nav>
     <div style="text-align: center">
-        <svg id="Tree" style='stroke-width: 0px; background-color: white;'> </svg>
-      <svg id="Matrix" style='stroke-width: 0px; background-color: white;'> </svg>
+        <svg style='stroke-width: 0px; background-color: white;'> </svg>
     </div>
     
         <!--Modal -->
@@ -91,7 +81,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title">Details</h4>
+            <h4 class="modal-title">Modal title</h4>
           </div>
           <div class="modal-body">
             <p>One fine body&hellip;</p>
@@ -111,7 +101,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title">Reviews</h4>
+            <h4 class="modal-title">Modal title</h4>
           </div>
           <div class="modal-body">
             <ul>
@@ -160,241 +150,11 @@
             console.log(data.Statistcs);
             Statistics = data.Statistcs;
             createViz(Matrix);
-            var cats = AnalyzeCategories(Matrix[0]);
-            drawTree(cats);
         });
         
-
-        function AnalyzeCategories(Business){
-            var star = new Date();
-            var Categories = {};
-             Business.forEach(function(bus){
-                if(bus.Categories){
-                    bus.Categories.forEach(function(c)
-                    {
-                        if(Categories[c])
-                            Categories[c].Count += 1;
-                        else
-                            Categories[c] = { Count: 1 };
-                    })
-                    bus.Categories2 = bus.Categories.slice(0);
-                }
-
-                
-
-            })
-            CategoriesArr = [];
-            for(k in Categories)
-            {
-                var obj = {Categorie: k, Count: Categories[k].Count, Subs: Categories[k]}
-                CategoriesArr.push(obj);
-            }
-            CategoriesArr.sort(function(p,n){
-                if(p.Count < n.Count) return 1;
-                if(p.Count > n.Count) return -1;
-                return 0;
-            })
-            constructTree(CategoriesArr.slice(0), Business);
-          
-            return CategoriesArr;
-        }
-
-        function constructTree(Categories, Business){
-            if(Categories.length == 0)
-                return Business;
-
-            var category = Categories.shift();
-            
-            Business.forEach(function(b){
-                if(b.Categories2 && b.Categories2.length > 0){
-                    
-                    var idx = b.Categories2.indexOf(category.Categorie);
-                    
-                     b.path = b.path || [];
-                    if(idx > -1)
-                    {
-
-                        b.path.push(category.Categorie);
-                        b.Categories2.splice(idx, 1);
-
-                    }
-
-                }
-            });
-            if(Categories.length == 0)
-                return Business;
-            else
-                return constructTree(Categories, Business);
-        }
-        
-        function showTree(){
-            var t = d3.select("#Tree").transition().duration(500).delay(1000).attr("height", 40);
-                    
-                    
-        }
-        function hideTree(){
-            var t = d3.select("#Tree").transition().duration(500).delay(1000).attr("height", 0);
-                    
-                    
-        }
-        
-        function drawTree(){
-            var niveis = {};
-            var niverAr = [];
-            for(var i = 1; i < Matrix[0].length; i++)
-            {
-                var b = Matrix[0][i];
-                if(b.path[0])
-                {
-                    if(niveis[b.path[0]])
-                        niveis[b.path[0]].Count++;   
-                    else    
-                        niveis[b.path[0]] = {Count: 1};
-
-                    if(b.path[1]){
-                        if(niveis[b.path[0]][b.path[1]])
-                            niveis[b.path[0]][b.path[1]] += 1;   
-                        else    
-                            niveis[b.path[0]][b.path[1]] = 1;
-                    }
-                    else
-                    {
-                        if(niveis[b.path[0]][" No Sub-Category"])
-                            niveis[b.path[0]][" No Sub-Category"] += 1;   
-                        else    
-                            niveis[b.path[0]][" No Sub-Category"] = 1;
-                    }
-                } 
-            }
-
-
-            for(n in niveis){
-                niveis[n].Subs = [];
-                for(sub in niveis[n])
-                {
-                    //console.log(n+ " -> " + sub);
-                    
-                    if(sub != "Count" && sub != "Subs")
-                    {
-                        niveis[n].Subs.push({ Category: sub, Count: niveis[n][sub]})
-                    }
-                }
-                niverAr.push({ Category: n, Count: niveis[n].Count, Subs: niveis[n].Subs});
-            }
-            niverAr.forEach(function (s){
-                s.Subs.sort(function(p,n){
-
-                    if(p.Category < n.Category)
-                        return -1;
-                    if(p.Category > n.Category)
-                        return 1;
-                    return 1;
-                })
-            })
-            niverAr.sort(function(p,n){
-                if(p.Category < n.Category)
-                    return -1;
-                if(p.Category > n.Category)
-                    return 1;
-                return 1;
-            })
-
-
-            //Nivel1
-            
-
-            for(var i =0; i < niverAr.length; i++)
-            {
-                var currNivel = niverAr[i];
-                if(i== 0)
-                {
-                    currNivel.Com = currNivel.Count;
-                    currNivel.Start = 0;
-                } else {
-                    niverAr[i].Start = niverAr[i-1].Start + niverAr[i-1].Count;
-                    niverAr[i].Com = niverAr[i-1].Com + niverAr[i].Count;
-                }
-                
-                //Subs
-               
-                for(var j =0; j < currNivel.Subs.length; j++)
-                {
-                    if(j == 0)
-                    {
-                        currNivel.Subs[0].Com = niverAr[i].Subs[0].Count;
-                        currNivel.Subs[0].Start = 0;
-                    } else {
-                        currNivel.Subs[j].Start = currNivel.Subs[j-1].Start + currNivel.Subs[j-1].Count;
-                        currNivel.Subs[j].Com =   currNivel.Subs[j-1].Com   + currNivel.Subs[j].Count;
-                    }
-                }
-            }
-            console.log(niverAr);   
-
-
-            var scale = d3.scale.category10();
-            var 
-                w = window.innerWidth,
-                h = window.innerHeight,
-                toobarHeigth= 60;
-            
-            var tree = d3.select("#Tree").attr("width", w).attr("height", 0);;
-            var g = tree.selectAll(".category")
-                .data(niverAr)
-                .enter()
-                .append("g")
-                .attr("class", "category")
-                .attr("width", function (d) { return d.Count*squareWidthTot})
-                .attr("transform",function(d, idx) {return "translate("+ (d.Start*squareWidthTot+squareWidthTot) +",0)"});
-            
-            g.append("rect")
-                .attr("width", function (d) { return d.Count*squareWidthTot})
-                .attr("height", 20)
-                .attr("x", 0)
-                .attr("y", 0)
-
-                .attr("title",function(d){return d.Category})
-                .attr("fill", function(d,idx){return scale(idx)})
-                .append("title").text(function(d,idx){return d.Category});
-            g.each(function (d, idxP){
-                    var scaleSub = d3.scale.linear()
-                        .domain([-1,0,d.Subs.length])
-                        .range(["white",scale(idxP), "#ddd"]);
-                    console.log(d);
-                    d3.select(this)
-                        .selectAll(".sub")
-                        .data(d.Subs)
-                        .enter()
-                        .append("g")
-                        .attr("class", "sub")
-                        .attr("width", function (d) { return d.Count*squareWidthTot})
-                        .attr("transform",function(d, idx) {return "translate("+ (d.Start*squareWidthTot) +",20)"})
-                        .append("rect")
-                        .attr("width", function (d) { return d.Count*squareWidthTot})
-                        .attr("height", 20)
-                        .attr("x", 0)
-                        .attr("y", 0)
-                        .attr("fill", function(d,idx){return scaleSub(idx)})
-                        .append("title").text(function(d,idx){return d.Category});
-                })
-            
-           /* g.append("text").text(function(d){return d.Category})
-                .attr("transform","rotate(270)")
-                .attr("x", -175)
-                .attr("y", function (d) { return d.Count*squareWidthTot/2})
-                
-                .attr("text-anchor", "start")*/
-
-        }
-
-
-
-
-        
-
         function setFill(type){
             tipoValue = type;
-             var t = d3.select("#Matrix").transition().duration(2000);
+             var t = d3.select("svg").transition().duration(2000);
                     t.selectAll("g").selectAll("rect")
                         .attr("fill",function(d,i){if(i==0) return "#FFF"; return fill(d)})
         }
@@ -402,7 +162,10 @@
         function sortBussiness(type){
             var temp = positionB.slice(1, positionB.length);
             
+            
+           
 
+            
             
             if(type == 'Reviews')
             {
@@ -411,19 +174,6 @@
                     if(Matrix[0][a].Reviews < Matrix[0][b].Reviews)
                         return 1;
                     if(Matrix[0][a].Reviews > Matrix[0][b].Reviews)
-                        return -1;
-                   
-                        return 0;
-                });
-            }
-
-            if(type == 'Category')
-            {
-                temp.sort(function(a,b){
-                    
-                    if(Matrix[0][a].path > Matrix[0][b].path)
-                        return 1;
-                    if(Matrix[0][a].path < Matrix[0][b].path)
                         return -1;
                    
                         return 0;
@@ -516,17 +266,14 @@
                         return 0;
                 });
             }
-
             
             positionB = [];
             positionB.push(0);
             positionB = positionB.concat(temp);
-            var t = d3.select("#Matrix").transition().duration(1000);
+            var t = d3.select("svg").transition().duration(1000);
                     
                     t.selectAll("g").selectAll("rect")
                         .attr("x", function(o,i){return  positionB.indexOf(i)*squareWidthTot}) //create Function
-
-            if(type == 'Category') showTree(); else hideTree();
             
         }
         
@@ -588,7 +335,7 @@
             position = [];
             position.push(0);
             position = position.concat(temp);
-            var t = d3.select("#Matrix").transition().duration(1000);
+            var t = d3.select("svg").transition().duration(1000);
                     
                     t.selectAll("g")
                         .attr("transform", function(d, i) { return "translate(0," + (position.indexOf(i)*squareWidthTot) + ")"; })
@@ -612,7 +359,7 @@
             d3.select("#srch").on("keyup", function (a,b,c,d){
                srch = this.value;
                
-                d3.select("#Matrix").selectAll("g").selectAll(".word")
+                d3.select("svg").selectAll("g").selectAll(".word")
                     .attr("fill",
                             function(d,i){ 
                                 if(d.Word.indexOf(srch) > -1 && srch !="")
@@ -633,7 +380,7 @@
             })
             
             
-            var svg = d3.select("#Matrix").attr("width", width).attr("height", (height-toobarHeigth));
+            var svg = d3.select("svg").attr("width", width).attr("height", (height-toobarHeigth));
             svg.append("rect").attr("x",-100)
                 .attr("y",0)
                 .attr("width",squareWidthTot+1)
@@ -696,7 +443,7 @@
                                     console.log('Excluir linha ' + idx);
                                     var p = position.indexOf(idx);
                                     position.splice(p,1);
-                                     var t = d3.select("#Matrix").transition().duration(1000);
+                                     var t = d3.select("svg").transition().duration(1000);
                     
                                             t.selectAll("g")
                                             .attr("transform", function(d, i) { return "translate(0," + (position.indexOf(i)*squareWidthTot) + ")"; })
@@ -709,8 +456,6 @@
                                 
                                     
                                     d3.select('#modalDlg .modal-body').append("h4").text("Business: "+a.Business);
-                                    d3.select('#modalDlg .modal-body').append("span").text(Matrix[0][i].path.join(","));
-                                    d3.select('#modalDlg .modal-body').append("br");
                                     d3.select('#modalDlg .modal-body').append("span").text(" - Rating: "+ Matrix[0][i].Stars 
                                                                                            +" / Reviews: "+ Matrix[0][i].Reviews
                                                                                            +" / Words: " + Matrix[0][i].SelWordCount);
@@ -823,7 +568,9 @@
                 
             }
             
-
+             
+           
+            
             
         }
         
