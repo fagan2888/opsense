@@ -1,0 +1,500 @@
+<html>
+    <head>
+    <style>
+        body {
+          font: 11px sans-serif;
+        }
+
+        .axis path,
+        .axis line {
+          fill: none;
+          stroke: #000;
+          shape-rendering: crispEdges;
+        }
+
+        .dot {
+          stroke: #000;
+            cursor: pointer;
+        }
+        .chDot {
+          stroke: #000;
+            cursor: pointer;
+        }
+        
+        .dot:hover {
+          stroke: #000;
+            fill: #d95353;
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: white;
+            border: solid 1px #000;
+            pointer-events: none;
+            padding: 5px;
+        }
+        
+    </style>
+    
+    </head>
+    <body>
+        <div>
+            <label>Variable: </label><select onchange="change(this)">
+                <option value="fv">Weight</option>
+                <option value="rating">Rating</option>
+                <option value="vv">Vertical</option>
+                <option value="hv">Horizontal</option>
+                
+            </select>
+        </div>
+        <div style="float:left; height: 500px;">
+            <svg id="scatter"></svg>
+        </div>
+        <div id="feature"></div>
+    </body>
+    
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script>
+    //------------------------------------------------------------------------------------
+        var yField = "fv";
+        
+        var margin = {top: 20, right: 20, bottom: 30, left: 40},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom,
+            barWidth = 250;
+        
+        var xValue = function(d) { return d.rating;}, // data -> value
+            xScale = d3.scale.linear().range([0, width]), // value -> display
+            xMap = function(d) { return xScale(xValue(d));}, // data -> display
+            xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+
+        // setup y
+        var yValue = function(d) { return d[yField];}, // data -> value
+            yScale = d3.scale.linear().range([height, 0]), // value -> display
+            yMap = function(d) { return yScale(yValue(d));}, // data -> display
+            yAxis = d3.svg.axis().scale(yScale).orient("left");
+        
+        var barScale = d3.scale.linear().range([0, barWidth-50]); 
+            
+        //Qualifiers scatter
+        var qMargin = {top: 20, right: 20, bottom: 30, left: 40},
+            qWidth = 300 - qMargin.left - qMargin.right,
+            qHeight = 200 - qMargin.top - qMargin.bottom;
+            
+        
+        var xQValue = function(d) { return d.rating;}, // data -> value
+            xQScale = d3.scale.linear().range([0, qWidth]), // value -> display
+            xQMap = function(d) { return xQScale(xQValue(d));}, // data -> display
+            xQAxis = d3.svg.axis().scale(xQScale).orient("bottom");
+
+        // setup y
+        var yQValue = function(d) { 
+                var prefix = getPrefix();
+                if(yField == "vv") {
+                   
+                    var h1 = d.is1/selected.is1;
+                    var h2 = d.is2/selected.is2;
+                    var h3 = d.is3/selected.is3;
+                    var h4 = d.is4/selected.is4;
+                    var h5 = d.is5/selected.is5;
+                    return variance([h1,h2,h3,h4,h5]);
+                }
+                else if(yField == "rating") {
+                    return d.rating;
+                }
+                else if(yField == "hv") {
+                    var h1 = d.is1/d.frequency;
+                    var h2 = d.is2/d.frequency;
+                    var h3 = d.is3/d.frequency;
+                    var h4 = d.is4/d.frequency;
+                    var h5 = d.is5/d.frequency;
+                    return variance([h1,h2,h3,h4,h5]);
+                
+                }
+                else if(yField == "fv") {
+                    var vs = [selected.is1,selected.is2,selected.is3,selected.is4,selected.is5];
+                    var max = d3.max(vs);
+                    var w1 = max/selected.is1;
+                    var w2 = max/selected.is2;
+                    var w3 = max/selected.is3;
+                    var w4 = max/selected.is4;
+                    var w5 = max/selected.is5;
+                    
+                    var tot = d.is1*w1 + d.is2*w2 + d.is3*w3 + d.is4*w4+ d.is5*w5;
+                    
+                    d.f1 = d.is1*w1/tot;
+                    d.f2 = d.is2*w2/tot;
+                    d.f3 = d.is3*w3/tot;
+                    d.f4 = d.is4*w4/tot;
+                    d.f5 = d.is5*w5/tot;
+                    
+                   return variance([d.f1,d.f2,d.f3,d.f4,d.f5]);
+                
+                }
+            
+                return 0;
+            }, // data -> value
+            yQScale = d3.scale.linear().range([qHeight, 0]), // value -> display
+            yQMap = function(d) { return yQScale(yQValue(d));}, // data -> display
+            yQAxis = d3.svg.axis().scale(yQScale).orient("left");
+           
+        
+        var selected = {};
+        
+        // setup fill color
+        var color = d3.scale.category10();
+        
+       
+
+        // add the graph canvas to the body of the webpage
+        var svg = d3.select("#scatter")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // add the tooltip area to the webpage
+        var detail = d3.select("#feature").style("display","none");
+        
+                
+         // add the tooltip area to the webpage
+        var tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+        
+        var tooltipC = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+        
+        var data = [];
+        
+        d3.json("dataScatter.json", function(error, dataOrig) {
+            data = dataOrig.Itens;
+            draw(dataOrig.Itens);
+        });
+        
+        function change(obj){
+            yField = obj.value;
+            detail.style("display","none");
+            redraw();
+        }
+        
+        function redraw(){
+            xScale.domain([d3.min(data, xValue), d3.max(data, xValue)]);
+            yScale.domain([0, d3.max(data, yValue)]);
+            
+            var t = svg.transition().duration(1000);
+            t.selectAll(".dot").attr("cy", yMap).attr("cx", xMap);
+            t.selectAll(".y").call(yAxis) 
+            t.selectAll(".x").call(xAxis) 
+            
+            detail.selectAll("div").html(getDesc());
+        }
+        
+        function draw(data){
+            xScale.domain([d3.min(data, xValue), d3.max(data, xValue)]);
+            yScale.domain([0, d3.max(data, yValue)]);
+            
+            var colorLM = d3.scale.log()
+                .domain([d3.min(data, function(d) { return d.frequency;}), d3.max(data, function(d) { return d.frequency;})])
+                .range(["white", color(1)]);
+            
+            // x-axis
+            svg.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + height + ")")
+              .call(xAxis)
+            .append("text")
+              .attr("class", "label")
+              .attr("x", width+10)
+              .attr("y", 27)
+              .style("text-anchor", "end")
+              .text("Stars");
+
+            // y-axis
+            svg.append("g")
+              .attr("class", "y axis")
+              .call(yAxis)
+            .append("text")
+              .attr("class", "label")
+              .attr("transform", "rotate(-90)")
+              .attr("y", 6)
+              .attr("dy", ".71em")
+              .style("text-anchor", "end")
+              .text("Variable");
+
+            // draw dots
+            svg.selectAll(".dot")
+              .data(data)
+            .enter().append("circle")
+              .attr("class", "dot")
+              .attr("r", 3.5)
+              .attr("cx", xMap)
+              .attr("cy", yMap)
+              .style("fill", function(d) { return colorLM(d.frequency);}) 
+              .on("mouseover", function(d) {
+                if(!pinned){
+                    d3.select(this).style("fill", function(d) { return color(2)}) 
+                      tooltip.transition()
+                           .duration(200)
+                           .style("opacity", .9);
+                      tooltip.html(d._id + ":"+ d.frequency)
+                           .style("left", (d3.event.pageX + 5) + "px")
+                           .style("top", (d3.event.pageY - 28) + "px");
+                    reDetail(d);
+                }
+              })
+              .on("click", function(d) {
+                   if(!pinned)
+                       pinned = d._id;
+                    else if (pinned == d._id){
+                        pinned = undefined; 
+                    }
+                    else {
+                        pinned = d._id;
+                        svg.selectAll(".dot").style("fill", function(d) { return colorLM(d.frequency)});
+                        d3.select(this).style("fill", function(d) { return color(2)}) 
+                          tooltip.transition()
+                               .duration(200)
+                               .style("opacity", .9);
+                          tooltip.html(d._id + ":"+ d.frequency)
+                               .style("left", (d3.event.pageX + 5) + "px")
+                               .style("top", (d3.event.pageY - 28) + "px");
+                        reDetail(d);
+                        
+                        
+                    }
+                        
+              })
+            .on("dblclick",function(d){
+                var index = data.indexOf(d);
+                if (index > -1) {
+                    data.splice(index, 1);
+                    console.log("removed");
+                }
+                redraw();
+                d3.select(this).remove();
+                //data.remove(d);
+            })
+             
+              .on("mouseout", function(d) {
+                if(!pinned){
+                    d3.select(this).style("fill", function(d) { return colorLM(d.frequency)}) ;
+                      tooltip.transition()
+                           .duration(500)
+                           .style("opacity", 0);
+                  };
+                })
+            
+            SetupDetail(data[0]);
+
+        }
+       
+        var pinned = undefined;
+        function SetupDetail(f){
+            var prefix = "h";
+            
+            
+            
+            
+            var values = [f[prefix + 1], f[prefix + 2], f[prefix + 3], f[prefix + 4], f[prefix + 5]];
+            
+            //-----
+            barScale.domain([0, d3.max(values)]);
+            detail.append("h1").text(f._id + ": " + f.frequency);
+            detail.append("h2").text("reting: " + f.rating.toFixed(1));
+            
+            var chart = detail.append("svg").attr("width", barWidth).attr("height", 80);
+            detail.append("div").text("");
+            detail.selectAll("div").html(getDesc());
+            var g = chart.selectAll(".bar")
+                .data(values)
+                .enter()
+                .append("g")
+                .attr("class","bar");
+            
+            g.attr("transform", function(d,i){ return "translate(0," + (12*i) + ")"})
+                .append("rect")
+                .attr("x",10)
+                .attr("width",function(d,i){ return barScale(d)})
+                .attr("height",function(d,i){ return 10})
+                .style("fill", function(d) { return color(1);}) 
+            
+            g.append("text")
+              .attr("class", "label")
+              .attr("y", 0)
+              .attr("dy", ".71em")
+              .style("text-anchor", "start")
+              .text(function(d,i){return i+1});
+            
+            g.append("text")
+              .attr("class", "value")
+              .attr("y", 0)
+              .attr("x", function(d,i){ return barScale(d)+10})
+              .attr("dy", ".71em")
+              .text(function(d,i){return d});
+            
+            
+            //----------------------
+            detail.append("svg")
+                .attr("id","qScatter")
+                .attr("width",  qWidth + qMargin.left + qMargin.right)
+                .attr("height", qHeight + qMargin.top + qMargin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+       
+            scatterDetail(f);
+            
+        }
+        
+        function getPrefix(){
+            if(yField == "vv") return "v";
+            if(yField == "rating") return "is";
+            if(yField == "hv") return "h";
+            if(yField == "fv") return "f";
+                
+        }
+        
+        function getDesc(){
+            if(yField == "vv") return "<b>Vertical comparation</b>, the feature occurs in <i>x</i>% of all review with <i>y</i> stars";
+            if(yField == "rating") return "The number of reviews of the feature with <i>y</i> stars";
+            if(yField == "hv") return "<b>Horizontal comparation</b>,<i>x</i>% of the feature occurs in reviews with <i>y</i> stars";
+            if(yField == "fv") return "<b>Weighted</b>, The number of reviews that the feature occurs with the same star was weighted by the participation of each number of star in the total number of reviews";
+                
+        }
+        
+        function reDetail(f){
+            selected = f;
+            var prefix = getPrefix();
+            detail.selectAll("h1").text(f._id + ": " + f.frequency);
+            detail.selectAll("h2").text("rating: " + f.rating.toFixed(1));
+            
+            var values = [f[prefix + 1], f[prefix + 2], f[prefix + 3], f[prefix + 4], f[prefix + 5]];
+            barScale.domain([0, d3.max(values)]);
+            var t = detail.transition().duration(500).select("svg");
+            
+            var chart = detail.selectAll("svg");
+            var g = chart.selectAll(".bar").data(values);
+            chart.selectAll("rect").data(values);
+            chart.selectAll(".value").data(values);
+            
+            detail.style("display","block");
+            
+            var t = g.transition().duration(500)
+            t.selectAll("rect").attr("width",function(d,i){ return barScale(d)});
+            t.selectAll(".value")
+                .text(function(d,i){ return ((d > 1) ? d : (d*100).toFixed(2)+ "%") })
+                .attr("x", function(d,i){ return barScale(d)+12});
+            
+            scatterDetail(f);
+            
+        }
+        
+        function drawBarChild(){
+            
+        }
+        
+        
+        
+        function scatterDetail(f){
+            xQScale.domain([d3.min(f.qualifiers, xQValue), d3.max(f.qualifiers, xQValue)]);
+            yQScale.domain([0, d3.max(f.qualifiers, yQValue)]);
+            
+            
+             var colorL = d3.scale.log()
+                .domain([d3.min(f.qualifiers, function(d) { return d.frequency;}), d3.max(f.qualifiers, function(d) { return d.frequency;})])
+                .range(["white", color(1)]);
+            
+            
+            detail.selectAll("#qScatter").selectAll("g").selectAll("*").remove();
+            var child = detail.selectAll("#qScatter").selectAll("g")
+            child.selectAll(".chDot")
+              .data(f.qualifiers)
+            .enter().append("circle")
+              .attr("class", "chDot")
+              .attr("r", 3.5)
+              .attr("cx", xQMap)
+              .attr("cy", yQMap)
+              .style("fill", function(d) { return colorL(d.frequency);}) 
+            .on("mouseover", function(d) {
+                    d3.select(this).style("fill", function(d) { return color(2)}) 
+                  tooltipC.transition()
+                       .duration(200)
+                       .style("opacity", .9);
+                  tooltipC.html(d.qualifier + ":"+ d.frequency)
+                       .style("left", (d3.event.pageX + 5) + "px")
+                       .style("top", (d3.event.pageY - 28) + "px");
+                
+              })
+            .on("dblclick",function(d){
+                var index = f.qualifiers.indexOf(d);
+                if (index > -1) {
+                    f.qualifiers.splice(index, 1);
+                    console.log("removed child");
+                }
+                reDetail(f);
+                d3.select(this).remove();
+                //data.remove(d);
+            })
+              .on("mouseout", function(d) {
+                d3.select(this).style("fill", function(d) { return colorL(d.frequency);}) ;
+                  tooltipC.transition()
+                       .duration(500)
+                       .style("opacity", 0);
+              });
+            
+             child.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + qHeight + ")")
+              .call(xQAxis)
+            .append("text")
+              .attr("class", "label")
+              .attr("x", qWidth)
+              .attr("y", 27)
+              .style("text-anchor", "end")
+              .text("Stars");
+            
+            child.append("g")
+              .attr("class", "y axis")
+              .call(yQAxis)
+            
+        }
+        
+        function variance(arr)
+        {
+            var len = 0;
+            var sum=0;
+            for(var i=0;i<arr.length;i++)
+            {
+                  if (arr[i] == ""){}
+
+                  else
+                  {
+                     len = len + 1;
+                     sum = sum + parseFloat(arr[i]); 
+                  }
+            }
+
+            var v = 0;
+            if (len > 1)
+            {
+                var mean = sum / len;
+                for(var i=0;i<arr.length;i++)
+                {
+                      if (arr[i] == ""){}
+                      else
+                      {
+                          v = v + (arr[i] - mean) * (arr[i] - mean);              
+                      }        
+                }
+
+                return v / (len-1);
+            }
+            else
+            {
+                 return 0;
+            }    
+        }
+        
+    </script>
+</html>
