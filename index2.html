@@ -1,3 +1,4 @@
+
 <html>
     <head>
     <style>
@@ -199,6 +200,10 @@
                 .domain([d3.min(data, function(d) { return d.frequency;}), d3.max(data, function(d) { return d.frequency;})])
                 .range(["white", color(1)]);
             
+            var size = d3.scale.log()
+                .domain([d3.min(data, function(d) { return d.frequency;}), d3.max(data, function(d) { return d.frequency;})])
+                .range([3, 15]);
+            
             // x-axis
             svg.append("g")
               .attr("class", "x axis")
@@ -228,7 +233,7 @@
               .data(data)
             .enter().append("circle")
               .attr("class", "dot")
-              .attr("r", 3.5)
+              .attr("r", function(d){ return size(d.frequency); })
               .attr("cx", xMap)
               .attr("cy", yMap)
               .style("fill", function(d) { return colorLM(d.frequency);}) 
