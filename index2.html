@@ -1,3 +1,4 @@
+
 <html>
     <head>
     <style>
@@ -9,18 +10,24 @@
         .axis line {
           fill: none;
           stroke: #000;
+            stroke-width:1px;
           shape-rendering: crispEdges;
         }
 
         .dot {
-          stroke: #000;
+            stroke: #000;
+            stroke-width:0;
             cursor: pointer;
+            fill-opacity: 0.6;
         }
         .chDot {
           stroke: #000;
             cursor: pointer;
         }
         
+        .domain: {
+            stroke-width:1;
+        }
         .dot:hover {
           stroke: #000;
             fill: #d95353;
@@ -192,12 +199,16 @@
         }
         
         function draw(data){
-            xScale.domain([d3.min(data, xValue), d3.max(data, xValue)]);
+            xScale.domain([d3.min(data, xValue)-0.1, d3.max(data, xValue)]);
             yScale.domain([0, d3.max(data, yValue)]);
             
             var colorLM = d3.scale.log()
                 .domain([d3.min(data, function(d) { return d.frequency;}), d3.max(data, function(d) { return d.frequency;})])
                 .range(["white", color(1)]);
+            
+            var size = d3.scale.log()
+                .domain([d3.min(data, function(d) { return d.frequency;}), d3.max(data, function(d) { return d.frequency;})])
+                .range([2, 10]);
             
             // x-axis
             svg.append("g")
@@ -228,10 +239,10 @@
               .data(data)
             .enter().append("circle")
               .attr("class", "dot")
-              .attr("r", 3.5)
+              .attr("r", function(d){ return size(d.frequency); })
               .attr("cx", xMap)
               .attr("cy", yMap)
-              .style("fill", function(d) { return colorLM(d.frequency);}) 
+              .style("fill", function(d) { return color(1);}) 
               .on("mouseover", function(d) {
                 if(!pinned){
                     d3.select(this).style("fill", function(d) { return color(2)}) 
@@ -252,7 +263,7 @@
                     }
                     else {
                         pinned = d._id;
-                        svg.selectAll(".dot").style("fill", function(d) { return colorLM(d.frequency)});
+                        svg.selectAll(".dot").style("fill", function(d) { return color(1);});
                         d3.select(this).style("fill", function(d) { return color(2)}) 
                           tooltip.transition()
                                .duration(200)
@@ -264,10 +275,6 @@
                         
                         
                     }
-                
-                    d.qualifiers.forEach(function(item){
-                        console.log(yQMap(item) + "," + item.rating);
-                    })
                         
               })
             .on("dblclick",function(d){
@@ -283,7 +290,7 @@
              
               .on("mouseout", function(d) {
                 if(!pinned){
-                    d3.select(this).style("fill", function(d) { return colorLM(d.frequency)}) ;
+                    d3.select(this).style("fill", function(d) { return color(1);}) ;
                       tooltip.transition()
                            .duration(500)
                            .style("opacity", 0);
