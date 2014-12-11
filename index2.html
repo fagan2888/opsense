@@ -25,6 +25,10 @@
             cursor: pointer;
         }
         
+        .chMainDot{
+            fill: #d95353;
+        }
+        
         .domain: {
             stroke-width:1;
         }
@@ -177,6 +181,8 @@
         
         d3.json("dataScatter.json", function(error, dataOrig) {
             data = dataOrig.Itens;
+            data.sort(function(a, b){return b.frequency- a.frequency})
+            console.log(data);
             draw(dataOrig.Itens);
         });
         
@@ -464,6 +470,12 @@
               .attr("y", 27)
               .style("text-anchor", "end")
               .text("Stars");
+            
+            child.append("circle")
+              .attr("class", "chMainDot")
+              .attr("r", 5)
+              .attr("cx", function(){ return xQMap(f) })
+              .attr("cy", function() { return yQScale(f[yField])})
             
             child.append("g")
               .attr("class", "y axis")
