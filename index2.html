@@ -41,6 +41,38 @@
             padding: 5px;
         }
         
+        #featureList{
+            margin-top: 20px;
+            width: 120px;
+            height: 470px;
+            float: left;
+            overflow: auto;
+            border-bottom: solid 1px #ddd;
+        }
+        
+        #featureList ul{
+            padding-left: 0px;;
+            margin-left: 0px;
+            margin-top: 5px;
+        }
+        
+        #featureList li{
+            padding-left: 10px;
+            cursor: pointer;
+        }
+        
+        .selected{
+            background-color: rgba(255, 127, 14, 0.1);
+            border-left: solid 5px rgb(255, 127, 14);
+            padding-left: 0px;
+            
+        }
+        
+        .chMainDot{
+            fill: #d95353;
+            fill-opacity: 0.6;
+        }
+        
     </style>
     
     </head>
@@ -54,7 +86,10 @@
                 
             </select>
         </div>
-        <div style="float:left; height: 500px;">
+        <div id="featureList">
+           
+        </div>
+        <div style="float:left; height: 400px;">
             <svg id="scatter"></svg>
         </div>
         <div id="feature"></div>
@@ -66,7 +101,7 @@
         var yField = "fv";
         
         var margin = {top: 20, right: 20, bottom: 30, left: 40},
-            width = 960 - margin.left - margin.right,
+            width = 780 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom,
             barWidth = 250;
         
@@ -198,8 +233,11 @@
             detail.selectAll("div").html(getDesc());
         }
         
+        
+        
         function draw(data){
-            xScale.domain([d3.min(data, xValue)-0.1, d3.max(data, xValue)]);
+            data.sort(function(a, b){return b.frequency- a.frequency});
+            xScale.domain([d3.min(data, xValue)-0.01, d3.max(data, xValue)]);
             yScale.domain([0, d3.max(data, yValue)]);
             
             var colorLM = d3.scale.log()
@@ -209,6 +247,18 @@
             var size = d3.scale.log()
                 .domain([d3.min(data, function(d) { return d.frequency;}), d3.max(data, function(d) { return d.frequency;})])
                 .range([2, 10]);
+            
+            
+            d3.select("#featureList")
+                .append("ul")
+                .selectAll("li")
+                .data(data)
+                .enter().append("li")
+                    .text(function(d) {return d._id})
+                    .on("mouseover", function(d,i) {
+                        select(d,i);
+                      })
+                
             
             // x-axis
             svg.append("g")
@@ -243,16 +293,9 @@
               .attr("cx", xMap)
               .attr("cy", yMap)
               .style("fill", function(d) { return color(1);}) 
-              .on("mouseover", function(d) {
+              .on("mouseover", function(d,i) {
                 if(!pinned){
-                    d3.select(this).style("fill", function(d) { return color(2)}) 
-                      tooltip.transition()
-                           .duration(200)
-                           .style("opacity", .9);
-                      tooltip.html(d._id + ":"+ d.frequency)
-                           .style("left", (d3.event.pageX + 5) + "px")
-                           .style("top", (d3.event.pageY - 28) + "px");
-                    reDetail(d);
+                    select(d,i);
                 }
               })
               .on("click", function(d) {
@@ -412,6 +455,7 @@
             yQScale.domain([0, d3.max(f.qualifiers, yQValue)]);
             
             
+            
              var colorL = d3.scale.log()
                 .domain([d3.min(f.qualifiers, function(d) { return d.frequency;}), d3.max(f.qualifiers, function(d) { return d.frequency;})])
                 .range(["white", color(1)]);
@@ -419,6 +463,9 @@
             
             detail.selectAll("#qScatter").selectAll("g").selectAll("*").remove();
             var child = detail.selectAll("#qScatter").selectAll("g")
+            
+            
+            
             child.selectAll(".chDot")
               .data(f.qualifiers)
             .enter().append("circle")
@@ -469,7 +516,45 @@
               .attr("class", "y axis")
               .call(yQAxis)
             
+            child.append("circle")
+              .attr("class", "chMainDot")
+              .attr("r", 8)
+              .attr("cx", function(){ return xQMap(f) })
+              .attr("cy", function() { return yQScale(f[yField])})
+            
         }
+        
+        function select(d, i){
+            
+            
+            if(!pinned){
+                svg.selectAll(".dot").style("fill", function(d) { return color(1);});
+                
+                d3.select("#featureList")
+                    .selectAll("ul")
+                    .selectAll("li")
+                    .classed("selected", false);
+                
+                d3.select(d3.select("#featureList")
+                    .selectAll("ul")
+                    .selectAll("li")[0][i])
+                    .classed("selected", true);
+                
+                var dot = d3.select(svg.selectAll(".dot")[0][i]);
+                dot.style("fill", function(d) { return color(2)}) ;
+                
+                var cx = dot.attr("cx");
+                var cy = dot.attr("cy");
+                tooltip.transition()
+                           .duration(200)
+                           .style("opacity", .9);
+                      tooltip.html(d._id + ":"+ d.frequency)
+                           .style("left", (cx*1.0 + 175) + "px")
+                           .style("top", (cy*1.0+15) + "px");
+                reDetail(d);
+            }
+        }
+        
         
         function variance(arr)
         {
