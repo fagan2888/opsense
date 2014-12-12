@@ -21,8 +21,10 @@
             fill-opacity: 0.6;
         }
         .chDot {
-          stroke: #000;
+            stroke: #000;
+            stroke-width:0;
             cursor: pointer;
+            fill-opacity: 0.6;
         }
         
         .domain: {
@@ -71,6 +73,11 @@
         .chMainDot{
             fill: #d95353;
             fill-opacity: 0.6;
+        }
+        .tooltip ul{
+            margin-left: 0px;
+            padding-left: 0px;
+            list-style: none;
         }
         
     </style>
@@ -460,26 +467,41 @@
                 .domain([d3.min(f.qualifiers, function(d) { return d.frequency;}), d3.max(f.qualifiers, function(d) { return d.frequency;})])
                 .range(["white", color(1)]);
             
+            var sizeSmall = d3.scale.log()
+                .domain([d3.min(f.qualifiers, function(d) { return d.frequency;}), d3.max(f.qualifiers, function(d) { return d.frequency;})])
+                .range([3, 7]);
             
             detail.selectAll("#qScatter").selectAll("g").selectAll("*").remove();
             var child = detail.selectAll("#qScatter").selectAll("g")
             
             
+            child.append("circle")
+              .attr("class", "chMainDot")
+              .attr("r", function(){ return sizeSmall(f.frequency);})
+              .attr("cx", function(){ return xQMap(f) })
+              .attr("cy", function() { return yQScale(f[yField])})
             
             child.selectAll(".chDot")
               .data(f.qualifiers)
             .enter().append("circle")
               .attr("class", "chDot")
-              .attr("r", 3.5)
+              .attr("r", function(d){ return sizeSmall(d.frequency);})
               .attr("cx", xQMap)
               .attr("cy", yQMap)
-              .style("fill", function(d) { return colorL(d.frequency);}) 
+              .style("fill", function(d) { return color(1);}) 
             .on("mouseover", function(d) {
                     d3.select(this).style("fill", function(d) { return color(2)}) 
                   tooltipC.transition()
                        .duration(200)
                        .style("opacity", .9);
-                  tooltipC.html(d.qualifier + ":"+ d.frequency)
+                  tooltipC.html(d.qualifier + ":"+ d.frequency 
+                                + "<br> <ul>" 
+                                +"<li>1 star: " + (d.is1/d.frequency*100).toFixed(2) + "%</li>"
+                                +"<li>2 star: " + (d.is2/d.frequency*100).toFixed(2) + "%</li>"
+                                +"<li>3 star: " + (d.is3/d.frequency*100).toFixed(2) + "%</li>"
+                                +"<li>4 star: " + (d.is4/d.frequency*100).toFixed(2) + "%</li>"
+                                +"<li>5 star: " + (d.is5/d.frequency*100).toFixed(2) + "%</li>"
+                                +"</ul>")
                        .style("left", (d3.event.pageX + 5) + "px")
                        .style("top", (d3.event.pageY - 28) + "px");
                 
@@ -495,7 +517,7 @@
                 //data.remove(d);
             })
               .on("mouseout", function(d) {
-                d3.select(this).style("fill", function(d) { return colorL(d.frequency);}) ;
+                d3.select(this).style("fill", function(d) { return color(1);}) ;
                   tooltipC.transition()
                        .duration(500)
                        .style("opacity", 0);
@@ -516,11 +538,7 @@
               .attr("class", "y axis")
               .call(yQAxis)
             
-            child.append("circle")
-              .attr("class", "chMainDot")
-              .attr("r", 8)
-              .attr("cx", function(){ return xQMap(f) })
-              .attr("cy", function() { return yQScale(f[yField])})
+            
             
         }
         
