@@ -590,7 +590,6 @@ function variance(arr)
           if (arr[i] == ""){}
           else if (!isNum(arr[i]))
           {
-              alert(arr[i] + " is not number, Variance Calculation failed!");
               return 0;
           }
           else
