@@ -244,6 +244,10 @@
         
         function draw(data){
             data.sort(function(a, b){return b.frequency- a.frequency});
+            
+            var datalist = data.slice(0);
+            
+            
             xScale.domain([d3.min(data, xValue)-0.01, d3.max(data, xValue)]);
             yScale.domain([0, d3.max(data, yValue)]);
             
@@ -251,17 +255,21 @@
                 .domain([d3.min(data, function(d) { return d.frequency;}), d3.max(data, function(d) { return d.frequency;})])
                 .range(["white", color(1)]);
             
-            var size = d3.scale.log()
+            var sizeF = d3.scale.log()
                 .domain([d3.min(data, function(d) { return d.frequency;}), d3.max(data, function(d) { return d.frequency;})])
-                .range([2, 10]);
+                .range([7, 20]);
             
+             var size = d3.scale.log()
+                .domain([d3.min(data, function(d) { return d.frequency;}), d3.max(data, function(d) { return d.frequency;})])
+                .range([2, 15]);
             
             d3.select("#featureList")
                 .append("ul")
                 .selectAll("li")
-                .data(data)
+                .data(datalist)
                 .enter().append("li")
                     .text(function(d) {return d._id})
+                    .style("font-size", function(d) {return sizeF(d.frequency)+7})
                     .on("mouseover", function(d,i) {
                         select(d,i);
                       })
