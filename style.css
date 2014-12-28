@@ -238,15 +238,29 @@ li.highlighted.selected{
     box-shadow: 1px 1px 5px #ccc;
 }
 
-
-#reviewList{
+#ctrlReviews{
     position: fixed;
     right: 0px;
     top: 40px;
     width: 320px;
+    height: 20px;
+    overflow: auto;
+    border-left: solid 1px #ddd;
+}
+
+.reviewBusiness{
+    padding-left: 30px;
+}
+
+#reviewList{
+    position: fixed;
+    right: 0px;
+    top: 60px;
+    width: 320px;
     bottom: 0px;
     overflow: auto;
     border-left: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
 }
 
 #reviewList ul{

@@ -19,15 +19,60 @@ loadDatabase("data1.json");
 var scatter1 = {};
 var scatter2 = {};
 var scatter3 = {};
+var reviewList = {};
+
+function changeListType(){
+    var sel = document.getElementById("slctReview").value;
+    
+    
+
+    
+    if(scatter1.selected && scatter1.selected._id)
+        var f = scatter1.selected._id;
+    if(scatter2.selected && scatter2.selected._id)
+        var q = scatter2.selected._id;
+    if(scatter3.selected && scatter3.selected._id)
+        var m = scatter3.selected._id;
+    
+    var s = document.getElementById("slctSort").value;
+    
+    reviewList.loadreviews(undefined, s, f,q,m);
+}
+
+function loadReviewsByBusiness(id){
+    var sel = document.getElementById("slctReview").value;
+    if(sel != "reviews") {
+        document.getElementById("slctSort").style.display = "none"; 
+        document.getElementById("lblSort").style.display = "none"; 
+    } else {
+        document.getElementById("slctSort").style.display = "inline"; 
+        document.getElementById("lblSort").style.display = "inline"; 
+    }
+    
+
+    
+    if(scatter1.selected && scatter1.selected._id)
+        var f = scatter1.selected._id;
+    if(scatter2.selected && scatter2.selected._id)
+        var q = scatter2.selected._id;
+    if(scatter3.selected && scatter3.selected._id)
+        var m = scatter3.selected._id;
+    
+    var s = document.getElementById("slctSort").value;
+    
+    reviewList.loadreviews(id,s,f,q,m);
+}
+
 function loadDatabase(database){
      d3.json(database, function(error, d) {
         parseData(d);
-        var reviewList = new ReviewsList("#reviewList");
-         
+        
+        reviewList = new ReviewsList("#reviewList"); 
         scatter1 = new Scatter("#mainScatter", data, "avg", "varianceW", "count", "_id");
         scatter1.draw(data);
         scatter1.onSelected = function(d){
-            reviewList.loadreviews(d._id);
+             var s = document.getElementById("slctSort").value;
+            reviewList.loadreviews(undefined, s, d._id);
         }  
         scatter1.onHighlight = function(d){
             scatter2.draw(d.qualifiers);
@@ -38,7 +83,8 @@ function loadDatabase(database){
         
         scatter2 = new Scatter("#qualiScatter", null, "avg", "varianceW", "count", "_id", "small");
         scatter2.onSelected = function(d){
-            reviewList.loadreviews(scatter1.selected._id, d._id);
+             var s = document.getElementById("slctSort").value;
+            reviewList.loadreviews(undefined,s,scatter1.selected._id, d._id);
         }  
         scatter2.onHighlight = function(d){
             scatter3.draw(d.modifiers);
@@ -49,7 +95,8 @@ function loadDatabase(database){
         scatter3 = new Scatter("#modiScatter", null, "avg", "varianceW", "count", "_id", "small");
         
          scatter3.onSelected = function(d){
-            reviewList.loadreviews(scatter1.selected._id,scatter2.selected._id, d._id);
+            var s = document.getElementById("slctSort").value;
+            reviewList.loadreviews(undefined,s, scatter1.selected._id,scatter2.selected._id, d._id);
         }  
         
          
@@ -408,7 +455,13 @@ function Scatter(id, data, xField, yField, sField, label, type){
     
     
 }
-
+function showModal(Title, msg){
+    //modal-title
+    //modal-body
+    $('#modalReviews .modal-title').html(Title);
+    $('#modalReviews .modal-body').html(msg);
+    $('#modalReviews').modal('show');
+}
 
 
 //ListReview
@@ -416,7 +469,7 @@ function ReviewsList(id) {
     var self = this;
     self.element = d3.select(id);
     self.color = d3.scale.linear().range(["#ca0020", "#f4a582", "#f7f7f7", "#92c5de","#0571b0"]).domain([1,2,3,4,5]);
-    self.loadreviews = function(f,q,m){
+    self.loadreviews = function(idBus, s,f,q,m){
         if(self.ul)
             self.ul.selectAll("li").remove();
         
@@ -424,12 +477,23 @@ function ReviewsList(id) {
            self.ul.selectAll("li").remove();
             return;
         }
-            
         
-       d3.json("http://localhost:8123/api/GetReviews/?f=" + f + ( q ? "&q=" + q: "")  + ( m ? "&m=" + m: ""), function(error, d){
-            self.draw(d);
-        })
-       self.key = { feature: f, qualifier: q, m: m};
+        var sel = document.getElementById("slctReview").value;
+        if(sel == "reviews") {
+           d3.json("http://localhost:8123/api/GetReviews/?id="+ idBus +"&s="+ s +"&f=" + f + ( q ? "&q=" + q: "")  + ( m ? "&m=" + m: ""), function(error, d){
+               self.key = { feature: f, qualifier: q, m: m}; 
+               self.draw(d);
+            })
+           self.key = { feature: f, qualifier: q, m: m};
+        }
+        else {
+            d3.json("http://localhost:8123/api/GetBusiness/?s="+ s +"&f=" + f + ( q ? "&q=" + q: "")  + ( m ? "&m=" + m: ""), function(error, d){
+               self.key = { feature: f, qualifier: q, m: m}; 
+               self.drawBusiness(d);
+            })
+           self.key = { feature: f, qualifier: q, m: m};
+        }
+       
     }
     
     
@@ -445,6 +509,29 @@ function ReviewsList(id) {
             .append("li")
             .style("border-left", function(d) {return "solid 5px " + self.color(d.stars) })
             .html(function(d){return '<span class="business">@' + d.business + "</span> - " + self.snnipet(d, self.key)})
+            .on('click',function(d){
+                showModal('<span class="business">@' + d.business + "</span> - " + d.stars + (d.stars == 1? "star": " stars"), self.txt(d, self.key));
+            })
+        el.exit().remove();
+        
+        self.isDraw = true;
+    }
+    
+    self.drawBusiness = function(data){
+        if(self.isDraw){
+            self.reDrawBusiness(data);
+            return;
+        }
+        
+        self.ul = self.element.append("ul");
+        var el =  self.ul.selectAll("li").data(data);
+        el.enter()
+            .append("li")
+            .style("border-left", function(d) {return "solid 5px " + self.color(d.stars) })
+            .html(function(d){return '<span class="business">@' + d.name + "</span> - " + d.count})
+            .on('click',function(d){
+                showModal('<span class="business">@' + d.business + "</span>", "sss");
+            })
         el.exit().remove();
         
         self.isDraw = true;
@@ -463,9 +550,103 @@ function ReviewsList(id) {
             .append("li")
             .style("border-left", function(d) {return "solid 5px " + self.color(d.stars) })
             .html(function(d){return '<span class="business">@' + d.business + "</span> - " + self.snnipet(d, self.key)})
+            .on('click',function(d){
+                showModal('<span class="business">@' + d.business + "</span> - " + d.stars + (d.stars == 1? "star": " stars"), self.txt(d, self.key));
+            })
         el.exit().remove();
         
         
+    }
+    
+    self.reDrawBusiness = function(data){
+        self.ul.selectAll("li").remove();
+        
+        var el =  self.ul.selectAll("li").data(data);
+        var ul = el.enter()
+            .append("ul")
+            .style("border-left", function(d) {return "solid 5px " + self.color(d.stars) })
+            .attr("class", "ulBusiness");
+        ul.append("li")
+            .html(function(d){return '<span class="business">' + d.name + "</span> - " + d.count})
+            .on('click',function(d){
+                
+            })
+        ul.selectAll(".reviewBusiness")
+            .data(function(d){console.log(d.reviews); return d.reviews})
+            .enter()
+            .append("li")
+            .attr("class", "reviewBusiness")
+            .style("border-left", function(d) {return "solid 5px " + self.color(d.stars) })
+            .html(function(d){return self.snnipet(d, self.key)})
+            .on('click',function(d){
+                showModal('<span class="business">@' + d.business + "</span> - " + d.stars + (d.stars == 1? "star": " stars"), self.txt(d, self.key));
+            })
+        el.exit().remove();
+        
+        
+    }
+    
+    self.txt = function(d, s){
+        var result = "";
+        var fs = {};
+        var qs = {};
+        var fsFull = {};
+         for(i=0; i< d.features.length; i++)
+        {
+            var f = d.features[i]
+            
+             if(f.qualifiers.length == 0)
+                    continue;
+            
+            if(f.feature.lemma == s.feature){
+                if(!s.q){
+                    fs = f.feature;
+                    for(q =0; q < f.qualifiers.length; q++){
+                        if(!qs.dist)
+                            qs = f.qualifiers[q];
+                        else if (f.qualifiers[q].dist < qs.dist)
+                            qs = f.qualifiers[q];
+                    }
+                    break;
+                }
+                    
+               
+                for(k =0; k < f.qualifiers.length; k++)
+                {
+                    var qc = f.qualifiers[k];
+
+                    if(qc.lemma == s.qualifier)
+                    {
+                        fs = f.feature;
+                        qs = qc;
+                        break;
+                    }
+                }
+            }
+        }
+
+        var order = [];
+        fs.class = "feature";
+        qs.class = "qualifier";
+        var span = 5000;
+        if(fs.start < qs.start){
+            order[0] = self.getSpanElm(fs);
+            order[1] = self.getSpanElm(qs);
+        }else{
+            order[1] = self.getSpanElm(fs);
+            order[0] = self.getSpanElm(qs);
+        }
+        var result = "";
+        result += d.text.substring(order[0].start, order[0].start-span);
+        
+        result += order[0].span;
+        result += d.text.substring(order[0].end, order[1].start);
+        result += order[1].span;
+        
+        result += d.text.substring(order[1].end, order[1].end+span) + ""
+        
+
+        return result;
     }
     
     self.snnipet = function(d, s){

@@ -18,9 +18,23 @@ var MongoClient = require('mongodb').MongoClient
         var feature = quote(request.param('f'));
         var qualifier = quote(request.param('q'));
         var modifier = quote(request.param('m'));
+        var sort = quote(request.param('s'));
         MongoClient.connect('mongodb://127.0.0.1:27017/Yelp', function(err, db) {
 	    	if(err) throw err;
-    		db.eval("searchData(" + feature + ", " + qualifier + ", " + modifier + ")", function(err, results){
+    		db.eval("searchData("+ sort +", " + feature + ", " + qualifier + ", " + modifier + ")", function(err, results){
+                response.json(results);
+            });
+        });
+	})
+    
+    app.get('/api/GetBusiness/', function(request, response, next) {
+        var feature = quote(request.param('f'));
+        var qualifier = quote(request.param('q'));
+        var modifier = quote(request.param('m'));
+        var sort = quote(request.param('s'));
+        MongoClient.connect('mongodb://127.0.0.1:27017/Yelp', function(err, db) {
+	    	if(err) throw err;
+    		db.eval("searchBusiness("+ sort +", " + feature + ", " + qualifier + ", " + modifier + ")", function(err, results){
                 response.json(results);
             });
         });
