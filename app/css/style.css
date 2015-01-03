@@ -1,0 +1,337 @@
+body{
+    margin: 0px;
+    margin: 0px;
+}
+
+
+/*Charts ----------------*/
+
+
+
+.dot {
+    stroke: #000;
+    stroke-width:0;
+    cursor: pointer;
+    fill-opacity: 0.6;
+    fill:#5596E6;
+    
+}
+
+    .dot.highlighted{
+         fill:#ff7f0e;
+    }
+
+    .dot.selected{
+        fill:#d62728;
+    }
+
+li.highlighted{
+    background-color: rgba(255, 120, 0, 0.14);
+}
+
+li.highlighted.selected{
+    background-color: rgba(255, 0, 0, 0.14);
+}
+
+
+
+.label{
+    font-size: 9px;
+    font-weight: normal;
+}
+
+.scList {
+    background-color: white;
+    height: 100%;
+    width: 100;
+    float: left;
+    border-right: solid 1px #ddd;
+}
+
+    .scList h1 {
+        font-size: 14px;
+        margin: 0px;
+        text-align: center;
+        background-color: #5596E6;
+        color: white;
+        padding: 3px;
+        position: absolute;
+        width: 100px;
+        height: 25px;
+        box-shadow: 0px 2px 5px #ddd;
+        padding-top: 3px;
+    }
+
+    .scList ul{
+        padding-left: 0px;
+        margin-left: 0px;
+        height: 100%;
+        padding-top: 25px;
+        overflow: auto;
+    }
+        .scList ul li{
+            list-style: none;
+            border-bottom: solid 1px #f9f9f9;
+            padding: 0px;
+            font-size: 10px;
+            padding-left: 5px;
+            cursor: pointer;
+            
+        }
+
+.chart{
+    position: relative;
+    overflow: hidden;
+}
+
+.scTitle{
+    border-bottom: solid 1px #ddd;
+    height: 25px;
+    width: 100%;
+    box-shadow: 0px 2px 5px #ddd;
+}
+
+    .scTitle .titleDetails {
+        width: 50%;
+        float: left;
+    }
+         .scTitle .titleDetails .titleLemma{
+             font-size: 18px;
+             width: 100px;
+             display: inline-block;
+             margin-left: 10px;
+             margin-right: 20px;
+             vertical-align: middle;
+             font-weight: bold;
+         }
+        .scTitle .titleDetails .titleAttr{
+            display: inline-block;
+            width: 150px;
+            height: 20px;
+            vertical-align: middle;
+        }
+
+    .scTitle .titleBars{
+        width: 30%;
+        margin-left: 69%;
+        height: 10px;
+        margin-right: 15px;
+        padding-top: 8px;
+        display: inline-block;
+
+    }
+
+.scScatter{
+    height: 375px;
+    width: 100%;
+}
+
+
+#qualiScatter .titleDetails {
+    font-size: 10px;
+    width: 200px;
+}
+
+#qualiScatter .titleDetails .titleAttr{
+    width: 50px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: none;
+}
+
+#qualiScatter .titleLemma{
+    font-size: 16px;
+    width: 50px;
+}
+
+
+#modiScatter .titleDetails {
+    font-size: 10px;
+    width: 200px;
+}
+
+#modiScatter .titleDetails .titleAttr{
+    width: 50px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: none;
+}
+
+#modiScatter .titleLemma{
+    font-size: 16px;
+    width: 50px;
+    
+}
+
+
+
+
+.axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+        stroke-width:1px;
+      shape-rendering: crispEdges;
+        
+    }
+.axis{
+    font-size: 10px;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: white;
+    border: solid 1px #000;
+    pointer-events: none;
+    padding: 5px;
+}
+
+.loading{
+    position: fixed;
+    opacity: 0.8;
+    text-align: center;
+    padding-top: 200px;
+    font-size: 20px;
+    background-color: white;
+    display: none;
+}
+#mLoading{
+    left: 0px;
+    bottom: 0px;
+    top: 0px;
+    right: 0px;
+}
+#rLoading{
+    right: 0px;
+    top: 60px;
+    width: 319px;
+    bottom: 0px;
+}
+
+#topBar{
+    background-color: #5596E6;
+    color: white;
+    height: 40px;
+    padding: 5px;
+    text-align: left;
+}
+    #topBar h1 {
+      
+        display: inline;
+        font-size: 18px;
+        margin-right: 20px;
+        border-right: solid 2px white;
+        padding-right: 20px;
+        padding-left: 10px;
+
+    }
+
+    #topBar label{
+        font-weight: normal;
+        font-size: 16px;
+        margin-left: 20px;
+        
+    }
+
+#mainScatter{
+    margin-top: 10px;
+    margin-left: 20px;
+    height: 400px;
+    width: 900px;
+    box-shadow: 1px 1px 5px #ccc;
+}
+
+
+#qualiScatter{
+    margin-top: 10px;
+    margin-left: 20px;
+    height: 250px;
+    width: 443px;
+    box-shadow: 1px 1px 5px #ccc;
+    
+}
+
+#modiScatter{
+    display: inline-block;
+    margin-top: 10px;
+    margin-left: 10px;
+    height: 250px;
+    width: 443px;
+    box-shadow: 1px 1px 5px #ccc;
+}
+
+#ctrlReviews{
+    position: fixed;
+    right: 0px;
+    top: 40px;
+    width: 320px;
+    height: 20px;
+    overflow: auto;
+    border-left: solid 1px #ddd;
+}
+
+.reviewBusiness{
+    padding-left: 30px;
+}
+
+#reviewList{
+    position: fixed;
+    right: 0px;
+    top: 60px;
+    width: 320px;
+    bottom: 0px;
+    overflow: auto;
+    border-left: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
+}
+
+#reviewList ul{
+        padding-left: 0px;
+        margin-left: 0px;
+
+}
+
+#reviewList ul li{
+    list-style: none;
+    border-bottom: solid 1px #ccc;
+    padding: 5px;
+}
+
+.business{
+    color: #5596E6;
+}
+
+.feature{
+    background-color: #fdd;
+}
+
+.qualifier{
+    background-color: #dfd;
+}
+
+.modifier{
+    background-color: #ddf;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
