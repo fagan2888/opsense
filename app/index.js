@@ -1,17 +1,17 @@
 var express = require('express');
 var app = express();
 
-app.set('port', (process.env.PORT || 8123))
+app.set('port', (process.env.PORT || 8124))
 
 var MongoClient = require('mongodb').MongoClient
 app.use("/css", express.static(__dirname +'/css'));
 app.use("/js", express.static(__dirname +'/js')); 
-var mongostring = 'mongodb://read:Yelp2015@ds029931-a0.mongolab.com:29931/heroku_app32907721'
-//var mongostring = 'mongodb://127.0.0.1:27017/Yelp'
+//var mongostring = 'mongodb://read:Yelp2015@ds029931-a0.mongolab.com:29931/heroku_app32907721'
+var mongostring = 'mongodb://127.0.0.1:27017/Yelp'
 var db = null;
 
 
-function searchBusiness(db, sort, feature, qualifier, modifier, callback){
+function searchBusiness(db, sort, feature, qualifier, modifier, callback, col){
     if(feature && !qualifier && !modifier)
         var params = {tuples: { $elemMatch:{"feature": feature, "qualifier": { $exists: true}}}};
     else if(feature && qualifier && !modifier)
@@ -20,7 +20,7 @@ function searchBusiness(db, sort, feature, qualifier, modifier, callback){
         var params = {tuples: { $elemMatch:{"feature": feature,"qualifier": qualifier,"modifier": modifier}}};
     
     
-    var collection = db.collection('reviews_Top50Search');
+    var collection = db.collection(col);
     collection.find(params, {_id: 1}).sort({"votes.useful": -1}).limit(500).toArray(function(err, result){
         var ids = [];   
         for(i =0; i<result.length; i++)
@@ -75,7 +75,7 @@ function searchBusiness(db, sort, feature, qualifier, modifier, callback){
 }
 
 
-function searchData(db, sort, feature, qualifier, modifier, callback) {
+function searchData(db, sort, feature, qualifier, modifier, callback, collName) {
     if(feature && !qualifier && !modifier)
         var params = {tuples: { $elemMatch:{"feature": feature, "qualifier": { $exists: true}}}};
     else if(feature && qualifier && !modifier)
@@ -83,16 +83,14 @@ function searchData(db, sort, feature, qualifier, modifier, callback) {
     else if(feature && qualifier && modifier)
         var params = {tuples: { $elemMatch:{"feature": feature,"qualifier": qualifier,"modifier": modifier}}};
     
-    
-    var collection = db.collection('reviews_Top50Search');
+    //'reviews_Top50SearchHealth'
+    var collection = db.collection(collName);
     collection.find(params, {_id: 1}).sort({"votes.useful": -1}).limit(200).toArray(function(err, result){
         var ids = [];   
         for(i =0; i<result.length; i++)
         {
             ids.push(result[i]._id);
-
         } 
-        console.log("ids done " + new Date());
         if(sort == "vt")
             sort = {"votes.useful": -1};
         else if(sort == "ra")
@@ -145,12 +143,15 @@ function searchData(db, sort, feature, qualifier, modifier, callback) {
         var qualifier = quote(request.param('q'));
         var modifier = quote(request.param('m'));
         var sort = quote(request.param('s'));
+        var col = request.param('col') || 'reviews_Top50SearchHealth';
+        
+        
         console.log("started " + new Date());
         searchData(db, sort, feature, qualifier, modifier,function(err, results){
             if(err) throw err;
             console.log("will send " + new Date());
             response.json(results);
-        })
+        }, col)
 	})
     
     app.get('/api/GetBusiness/', function(request, response, next) {
@@ -158,6 +159,7 @@ function searchData(db, sort, feature, qualifier, modifier, callback) {
         var qualifier = quote(request.param('q'));
         var modifier = quote(request.param('m'));
         var sort = quote(request.param('s'));
+        var col = request.param('col') || 'reviews_Top50SearchHealth';
         MongoClient.connect(mongostring, function(err, db) {
 	    	if(err) throw err;
     		//db.eval("searchBusiness("+ sort +", " + feature + ", " + qualifier + ", " + modifier + ")", function(err, results){
@@ -165,7 +167,7 @@ function searchData(db, sort, feature, qualifier, modifier, callback) {
                 if(err) throw err;
                 response.json(results);
                 //db.close();
-            });
+            }, col);
             
         });
 	})

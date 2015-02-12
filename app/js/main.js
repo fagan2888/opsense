@@ -1,6 +1,7 @@
 var data = [];
 var totals = {};
 var countLimit = 5;
+var showMaster = true;
 var 
     cNoMapping = "#1f77b4",
     chover = "#ff7f0e",
@@ -66,12 +67,19 @@ function chageDb(a){
     reload(a.value);
 }
 
+function CountChange(e){
+    countLimit = e.value;
+    
+    scatter1.draw(data);
+    if(scatter1.selected && scatter1.selected._id)
+        scatter2.draw(scatter1.selected.qualifiers);
+        //scatter2.draw(scatter1.selected.qualifiers);
+    if(scatter2.selected && scatter2.selected._id)
+        scatter3.draw(scatter2.selected.modifiers);
+}
 
 function changeListType(){
     var sel = document.getElementById("slctReview").value;
-    
-    
-
     
     if(scatter1.selected && scatter1.selected._id)
         var f = scatter1.selected._id;
@@ -118,19 +126,19 @@ function loadDatabase(database){
         scatter1 = new Scatter("#mainScatter", data, "avg", "varianceW", "count", "_id", null, "feature");
         scatter1.draw(data);
         scatter1.onSelected = function(d){
-             var s = document.getElementById("slctSort").value;
+            var s = document.getElementById("slctSort").value;
             reviewList.loadreviews(undefined, s, d._id);
-            scatter2.clean();
+            scatter2.clean({},true);
         }  
         scatter1.onHighlight = function(d){
             scatter2.draw(d.qualifiers);
-            scatter2.clean();
+
         }
         scatter1.onClean = function(d){
             scatter2.draw(null);
         }
         
-        scatter2 = new Scatter("#qualiScatter", null, "avg", "varianceW", "count", "_id", "small", "qualifier");
+        scatter2 = new Scatter("#qualiScatter", null, "avg", "varianceW", "count", "_id", "small", "qualifier", scatter1);
          scatter2.draw();
         scatter2.onSelected = function(d){
              var s = document.getElementById("slctSort").value;
@@ -143,7 +151,7 @@ function loadDatabase(database){
         scatter2.onClean = function(d){
             scatter3.draw(null);
         }
-        scatter3 = new Scatter("#modiScatter", null, "avg", "varianceW", "count", "_id", "small", "modifier");
+        scatter3 = new Scatter("#modiScatter", null, "avg", "varianceW", "count", "_id", "small", "modifier", scatter2);
         scatter3.draw();
          scatter3.onSelected = function(d){
             var s = document.getElementById("slctSort").value;
@@ -155,19 +163,23 @@ function loadDatabase(database){
      });
 }
 
-function Scatter(id, data, xField, yField, sField, label, type, part){
+function Scatter(id, data, xField, yField, sField, label, type, part, master){
     var self = this;
     self.element = d3.select(id)
     self.isDraw = false;
   
     self.init = function(){
         console.log("init");
+        self.part = part;
+        self.type = type;
+        self.master = master;
 
         //Init List---------------------------------------------------------------------------------
         self.list = self.element.append("div").attr("class", "scList");
         
         self.list.append("h1").text(part);
         self.list.ul = self.list.append("ul");
+    
 
         //Init Title---------------------------------------------------------------------------------
         self.title = self.element.append("div").attr("class", "scTitle");
@@ -182,6 +194,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part){
             b.width = b.style("width").replace('px','') *1;
             b.height = b.style("height").replace('px','');
             b.xScale = d3.scale.linear().rangeRound([0, b.width]).domain([0,1]);
+            
             b.svg = b.append("svg")
                 .attr("width", b.width)
                 .attr("height", b.height)
@@ -210,17 +223,19 @@ function Scatter(id, data, xField, yField, sField, label, type, part){
             s.xScale = d3.scale.linear().range([s.margin.left, s.innerWidth]);
             s.xMap = function(d) { return s.xScale(s.xValue(d));};
             s.xAxis = d3.svg.axis().scale(s.xScale).orient("bottom");
-
+            s.xGrid = d3.svg.axis().scale(s.xScale).orient("bottom");
+           
             //Y Axis
             s.yValue = function (d) { return d[yField]; }
             s.yScale = d3.scale.linear().range([s.innerHeight+s.margin.top, s.margin.top]);
             s.yMap = function(d) { return s.yScale(s.yValue(d));};
             s.yAxis = d3.svg.axis().scale(s.yScale).orient("left");
-
+            s.yGrid = d3.svg.axis().scale(s.yScale).orient("left");
             //Size
             s.sizeValue = function (d) { return d[sField]; }
             s.sizeScale = d3.scale.log().range([3, 12]);
-            s.sizeMap = function(d) { return s.sizeScale(s.sizeValue(d));};
+            s.sizeMap = function(d) {  if(d.count < countLimit && self.type != "small") return 0; else return s.sizeScale(s.sizeValue(d));};
+            s.sizeMapNoCount = function(d) { return s.sizeScale(s.sizeValue(d));};
             //Create svg
             s.svg = s.append("svg")
                 .attr("width", s.width)
@@ -234,49 +249,75 @@ function Scatter(id, data, xField, yField, sField, label, type, part){
     
    //Interaction-------------------------------------------
    self.highlight = function(d){
-        self.title.details.word.text(d._id);
-        self.title.details.avg.text("avg: " + d.Wavg.toFixed(2) + " / "+ d.avg.toFixed(2))
-        self.title.details.frequency.text("frequency: " + d.count)
+        if(self.type == "small"){
+            self.title.details.word.text(d._id + " ("+ d.count +")");
+            self.title.details.avg.text("")
+            self.title.details.frequency.text("")
+        }
+        else {
+            self.title.details.word.text(d._id);
+            self.title.details.avg.text("avg: " + d.avg.toFixed(2))
+            self.title.details.frequency.text("frequency: " + d.count)
+        }
+       
         self.scatter.selectAll(".dot").attr("class", function(c){ 
-            return (c._id == d._id ? "dot highlighted": "dot") 
+            return (c._id == d._id ? "dot highlighted": (c.isMaster ? "dot master" : "dot")) 
                 + ((self.selected && c._id == self.selected._id ) ? " selected" : "")
         }) ;
         self.list.selectAll("li").attr("class", function(c){ 
-          return (c._id == d._id ? "dot highlighted": "dot") 
+          return (c._id == d._id ? "dot highlighted": (c.isMaster ? "dot master" : "dot")) 
                 + ((self.selected && c._id == self.selected._id ) ? " selected" : "")
         }) ;
         self.title.bar.style("display","block");
         self.DrawBar(d);
-       
+       self.highlighted = d;
        if(self.onHighlight)
                 self.onHighlight(d);
     }
+   
+    self.colorFix = function(d){
+        self.scatter.selectAll(".dot").attr("class", function(c){ 
+            return (c._id == d._id ? "dot highlighted": (c.isMaster ? "dot master" : "dot")) 
+                + ((self.selected && c._id == self.selected._id ) ? " selected" : "")
+        }) ;
+        self.list.selectAll("li").attr("class", function(c){ 
+          return (c._id == d._id ? "dot highlighted": (c.isMaster ? "dot master" : "dot")) 
+                + ((self.selected && c._id == self.selected._id ) ? " selected" : "")
+        }) ;
+    }
+    
+   
     
     self.clean = function(d, clSelected){
         self.title.details.word.text("");
         self.title.details.avg.text("");
         self.title.details.frequency.text("");
-        self.scatter.selectAll(".dot").attr("class", "dot") ;
-        self.list.selectAll("li").attr("class", "") ;
+        self.scatter.selectAll(".dot").attr("class", function(c) { return c.isMaster ? "dot master" : "dot"}) ;
+        self.list.selectAll("li").attr("class", function(c) { return c.isMaster ? "dot master" : "dot"}) ;
         self.title.bar.style("display","none");
         
          if(self.onClean)
                 self.onClean(d);
         
+        //self.selected = {};
+        
         if(!clSelected && self.selected)
             self.highlight(self.selected);
+        else {
+            self.selected = undefined;
+        }
     }
     
     self.select = function(d){
         if(self.selected && self.selected._id == d._id){
             self.selected = undefined;
-            self.highlight(d);
+            self.colorFix(d);
             if(self.onSelected)
                 self.onSelected({});
         }
         else {
             self.selected = d;
-            self.highlight(d);
+            self.colorFix(d);
             if(self.onSelected)
                 self.onSelected(d);
         }
@@ -308,33 +349,69 @@ function Scatter(id, data, xField, yField, sField, label, type, part){
         } else {
             self.element.style("display", "inline-block");
         }
-        data = data.filter(function(e){ return e.count >= countLimit });
+        //data = data.filter(function(e){ return e.count >= countLimit });
+        data.sort(function(a, b) {
+            if(a.isMaster){
+                return 1;
+            }
+            if(b.isMaster){
+                return -1;
+            }
+            
+          return b.count - a.count;
+        });
+       
+        
+        if(showMaster)
+            if(self.master) {
+            var masterValue = self.master.highlighted || self.master.selected;
+                if(masterValue && masterValue._id){
+                    var mst = JSON.parse(JSON.stringify(masterValue));
+                    mst.isMaster = true;
+                    if(data.filter(function(i) { return i[label] == mst[label]}).length == 0)
+                        data.push(mst);
+                }
+            }
+        
         self.data = data;
-        if(self.isDraw)
+        
+        if(self.isDraw){
             self.reDraw(data);
+            self.clean();
+            return;
+        }
         //Draw List
+        
         var l =  self.list.ul.selectAll("li").data(data);
         l.enter()
             .append("li")
+            .attr("class", function(d) { return d.isMaster ? "dot master" : "dot"})
             .text(function(d){return d[label]})
+            .style("display", function(d){ return ((self.type != "small" && d.count < countLimit) || d.isMaster) ? "none": "list-item" })
             .on("mouseover", function(d) {
-                self.highlight(d);
+                if(!d.isMaster && d != self.selected)
+                    self.highlight(d);
             })
             .on("mouseout", function(d) {
-                self.clean(d);
+                if(!d.isMaster && d != self.selected)
+                    self.clean(d);
             }).on("click", function(d) {
-                self.select(d);
+                if(!d.isMaster)
+                    self.select(d);
             })
             .on("contextmenu",function(d){
                 d3.event.preventDefault();
                 d3.event.stopPropagation();
-                self.remove(d);
+                if(!d.isMaster)
+                    self.remove(d);
             });
         
         l.exit().remove();
         //Draw Scatter
         self.DrawScatter(data);
+        
         self.isDraw = true;
+        
     }
     
     self.reDraw = function(data){
@@ -351,35 +428,45 @@ function Scatter(id, data, xField, yField, sField, label, type, part){
         var l =  self.list.ul.selectAll("li").data(data);
         l.enter()
             .append("li")
+            .attr("class", function(d) { return d.isMaster ? "dot master" : "dot"})
             .text(function(d){return d[label]})
+            .style("display", function(d){ return ((self.type != "small" && d.count < countLimit) || d.isMaster) ? "none": "list-item" })
             .on("mouseover", function(d) {
-                self.highlight(d);
+                if(!d.isMaster && d != self.selected)
+                    self.highlight(d);
             })
             .on("mouseout", function(d) {
-                self.clean(d);
+                if(!d.isMaster && d != self.selected)
+                    self.clean(d);
             }).on("click", function(d) {
-                self.select(d);
+                if(!d.isMaster)
+                    self.select(d);
             })
             .on("contextmenu",function(d){
                 d3.event.preventDefault();
                 d3.event.stopPropagation();
-                self.remove(d);
+                if(!d.isMaster)
+                    self.remove(d);
             });
         
         l.exit().remove();
         
         //Draw Scatter
         self.DrawScatter(data);
+        
     }
     
     self.DrawBar = function(data){
         var b = self.title.bar;
-        
-        var stars = [data.isW1, data.isW2, data.isW3, data.isW4, data.isW5];
+        console.log(data);
+        var stars = [data.isH1, data.isH2, data.isH3, data.isH4, data.isH5];
         var x0 = 0;
+        console.log(stars)
+        console.log(b.width)
         stars = stars.map(function(value) { 
             return {v: value ,x0: x0, x1: x0 += b.xScale(value)}; 
         });
+        console.log(stars)
         
         if(b.isDraw){
             self.ReDrawBar(stars);
@@ -417,9 +504,12 @@ function Scatter(id, data, xField, yField, sField, label, type, part){
         s.sizeScale.domain([d3.min(data,s.sizeValue), d3.max(data,s.sizeValue)])
         
         if(s.isDraw){
+            
             self.ReDrawScatter(data);
+            self.colorFix({});
             return;
         }
+        
         s.svg.append("g")
           .attr("class", "x axis")
           .attr("transform", "translate(0," + (s.innerHeight+ s.margin.top) + ")")
@@ -431,6 +521,11 @@ function Scatter(id, data, xField, yField, sField, label, type, part){
           .style("text-anchor", "end")
           .text("rating");
 
+         s.svg.append("g")
+          .attr("class", "grid xg")
+          .attr("transform", "translate(0," + (s.innerHeight+ s.margin.top) + ")")
+          .call(s.xGrid.tickSize(- s.innerHeight, 0, 0).tickFormat(""))
+        
         // y-axis
         s.svg.append("g")
             .attr("transform", "translate(" + s.margin.left + "," + 0 + ")")
@@ -445,21 +540,31 @@ function Scatter(id, data, xField, yField, sField, label, type, part){
             .style("text-anchor", "end")
             .text("variance");
         
+        s.svg.append("g")
+          .attr("class", "grid yg")
+          .attr("transform", "translate(" + s.margin.left + "," + 0 + ")")
+          .call(s.yGrid.tickSize(-(s.innerWidth - 40), 0, 0).tickFormat(""))
+        
         var dots = s.svg.selectAll(".dot").data(data);
+        
         dots.enter().append("circle")
-            .attr("class", "dot")
+            .attr("class", function(d) { return d.isMaster ? "dot master" : "dot"})
             .attr("r", s.sizeMap)
             .attr("cx", s.xMap)
             .attr("cy", s.yMap)
-            .style("visible", function(d) { return d.count >= countLimit ? "visible": "hidden";})
+            //.style("visibility", function(d) { return d.count >= countLimit ? "visible": "hidden";})
+            
             .on("mouseover", function(d) {
-                self.highlight(d);
+                if(!d.isMaster && d != self.selected)
+                    self.highlight(d);
             })
             .on("mouseout", function(d) {
-                self.clean(d);
+                if(!d.isMaster && d != self.selected)
+                    self.clean(d);
             })
             .on("click", function(d) {
-                self.select(d);
+                if(!d.isMaster)
+                    self.select(d);
             })
             .on("contextmenu",function(d){
                 d3.event.preventDefault();
@@ -467,43 +572,55 @@ function Scatter(id, data, xField, yField, sField, label, type, part){
                 self.remove(d);
             });
         dots.exit().remove();
+        
         s.isDraw = true;
-            
+            self.colorFix({});
     }
     
     self.ReDrawScatter = function(data){
-        
         var s = self.scatter;
         var dots = s.svg.selectAll(".dot").data(data);
         dots.enter().append("circle")
-            .attr("class", "dot")
+            .attr("class", function(d) { return d.isMaster ? "dot master" : "dot"})
             .attr("r", s.sizeMap)
             .attr("cx", s.xMap)
             .attr("cy", s.yMap)
+            .style("visibility", function(d) { console.log(d.count); return d.count >= countLimit ? "visible": "hidden";})
             .on("mouseover", function(d) {
-                self.highlight(d);
+                if(!d.isMaster)
+                    self.highlight(d);
             })
             .on("mouseout", function(d) {
                 self.clean(d);
             })
             .on("click", function(d) {
-                self.select(d);
+                if(!d.isMaster)
+                    self.select(d);
             })
             .on("contextmenu",function(d){
                 d3.event.preventDefault();
                 d3.event.stopPropagation();
-                self.remove(d);
+                if(!d.isMaster)
+                    self.remove(d);
             });
         dots.exit().remove();
         var t = s.svg.transition().duration(500);
             t.selectAll(".dot")
+                .attr("class", function(d) { return d.isMaster ? "dot master" : "dot"})
                 .attr("cy", s.yMap)
                 .attr("cx", s.xMap)
                 .attr("r", s.sizeMap)
+                //.style("visibility", function(d) { console.log(d.count); return d.count >= countLimit ? "visible": "hidden";})
                 
             
             t.selectAll(".y").call(s.yAxis) 
             t.selectAll(".x").call(s.xAxis) 
+            
+            t.selectAll(".yg").call(s.yGrid.tickSize(-(s.innerWidth - 40), 0, 0).tickFormat(""))
+            t.selectAll(".xg").call(s.xGrid.tickSize(- s.innerHeight, 0, 0).tickFormat(""))
+        console.log('redrwan'); 
+        
+        self.colorFix({});    
     }
         
     
@@ -533,7 +650,7 @@ function ReviewsList(id) {
     }
     self.loadreviews = function(idBus, s,f,q,m){
         self.abortIfLoading();
-        pReview.show();
+        
         if(self.ul)
             self.ul.selectAll("li").remove();
         
@@ -542,9 +659,12 @@ function ReviewsList(id) {
             return;
         }
         
+        pReview.show();
+        
+        
         var sel = document.getElementById("slctReview").value;
         if(sel == "reviews") {
-           self.currentXhr = d3.json("/api/GetReviews/?id="+ idBus +"&s="+ s +"&f=" + f + ( q ? "&q=" + q: "")  + ( m ? "&m=" + m: ""), function(error, d){
+           self.currentXhr = d3.json("/api/GetReviews/?col=" + collectionSearch + "&id="+ idBus +"&s="+ s +"&f=" + f + ( q ? "&q=" + q: "")  + ( m ? "&m=" + m: ""), function(error, d){
                self.key = { feature: f, qualifier: q, m: m}; 
                self.draw(d);
                pReview.hide();
@@ -580,7 +700,7 @@ function ReviewsList(id) {
             .style("border-left", function(d) {return "solid 5px " + self.color(d.stars) })
             .html(function(d){return '<span class="business">@' + d.business + "</span> - " + self.snnipet(d, self.key)})
             .on('click',function(d){
-                showModal('<span class="business">@' + d.business + "</span> - " + d.stars + (d.stars == 1? "star": " stars"), self.txt(d, self.key));
+                showModal('<span class="business">@' + d.business + "</span> - " + d.stars + (d.stars == 1? "star": " stars"), self.fullTxt(d, self.key));
             })
         el.exit().remove();
         
@@ -621,7 +741,7 @@ function ReviewsList(id) {
             .style("border-left", function(d) {return "solid 5px " + self.color(d.stars) })
             .html(function(d){return '<span class="business">@' + d.business + "</span> - " + self.snnipet(d, self.key)})
             .on('click',function(d){
-                showModal('<span class="business">@' + d.business + "</span> - " + d.stars + (d.stars == 1? "star": " stars"), self.txt(d, self.key));
+                showModal('<span class="business">@' + d.business + "</span> - " + d.stars + (d.stars == 1? "star": " stars"), self.fullTxt(d, self.key));
             })
         el.exit().remove();
         
@@ -649,11 +769,38 @@ function ReviewsList(id) {
             .style("border-left", function(d) {return "solid 5px " + self.color(d.stars) })
             .html(function(d){return self.snnipet(d, self.key)})
             .on('click',function(d){
-                showModal('<span class="business">@' + d.business + "</span> - " + d.stars + (d.stars == 1? "star": " stars"), self.txt(d, self.key));
+                showModal('<span class="business">@' + d.business + "</span> - " + d.stars + (d.stars == 1? "star": " stars"), self.fullTxt(d, self.key));
             })
         el.exit().remove();
         
         
+    }
+    
+    self.fullTxt = function(d, s){
+        return self.txt(d,s);
+        fOcurrences = d.features.filter(function(d){ return d.feature.lemma == s.feature });
+        if(s.q){
+            fOcurrences.forEach(function(f){
+                f = f.qualifiers.filter(function(q) { return q.lemma == s.q; })
+            })
+        }
+        
+        fOcurrences.sort(function(f1,f2) { return f1.feature.start - f2.feature.start;});
+        console.log(fOcurrences);
+        
+        var result = "";
+        result += d.text.substring(0,fOcurrences[0].feature.start);
+        for(i=0; i< fOcurrences.length; i++){
+            var fs = fOcurrences[i].feature;
+            fs.class = "feature";
+            result += self.getFullSpanElm(fOcurrences[i]).span;
+            if(i < fOcurrences.length-1)
+                result += d.text.substring(fs.end, fOcurrences[i+1].feature.start);
+            else
+               result += d.text.substring(fs.end, d.text.length); 
+        }
+        
+        return result;// + "<hr>"+ d.text;
     }
     
     self.txt = function(d, s){
@@ -733,7 +880,6 @@ function ReviewsList(id) {
             
             if(f.feature.lemma == s.feature){
                 if(!s.qualifier){
-                    console.log('No q');
                     fs = f.feature;
                     for(q =0; q < f.qualifiers.length; q++){
                         if(!qs.dist)
@@ -801,6 +947,8 @@ function ReviewsList(id) {
             span: '<span class="' + item.class+'">' + item.word + '</span>'
         }
     }
+    
+   
 }
 
 
@@ -922,6 +1070,7 @@ function mean(arr)
 function parseData(d){
     data = d.data;
     totals = d.totals;
+    collectionSearch = d.collectionSearch;
     
     totals.is1P = totals.is1/totals.count;
     totals.is2P = totals.is2/totals.count;

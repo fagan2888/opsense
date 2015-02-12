@@ -7,7 +7,6 @@ body{
 /*Charts ----------------*/
 
 
-
 .dot {
     stroke: #000;
     stroke-width:0;
@@ -17,6 +16,7 @@ body{
     
 }
 
+
     .dot.highlighted{
          fill:#ff7f0e;
     }
@@ -24,6 +24,14 @@ body{
     .dot.selected{
         fill:#d62728;
     }
+
+.master{
+     fill:#000 !important;
+}
+
+li.master{
+    display: none;
+}
 
 li.highlighted{
     background-color: rgba(255, 120, 0, 0.14);
@@ -141,7 +149,7 @@ li.highlighted.selected{
 
 #qualiScatter .titleLemma{
     font-size: 16px;
-    width: 50px;
+    width: 150px;
 }
 
 
@@ -159,7 +167,7 @@ li.highlighted.selected{
 
 #modiScatter .titleLemma{
     font-size: 16px;
-    width: 50px;
+    width: 150px;
     
 }
 
@@ -177,6 +185,20 @@ li.highlighted.selected{
 .axis{
     font-size: 10px;
 }
+
+
+
+
+/* Grid ------*/
+.grid .tick {
+    stroke: #efefef;
+    opacity: 0.4;
+}
+.grid path {
+      stroke-width: 0;
+}
+
+
 
 .tooltip {
     position: absolute;
