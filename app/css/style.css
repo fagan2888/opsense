@@ -23,6 +23,8 @@ body{
 
     .dot.selected{
         fill:#d62728;
+        stroke: #000;
+        stroke-width:1;
     }
 
 .master{
@@ -171,6 +173,11 @@ li.highlighted.selected{
     
 }
 
+ .avgLine{
+                stroke-width:1;
+                stroke: red;
+                
+            }
 
 
 

@@ -106,7 +106,7 @@
     <script src="js/gliphy.js" charset="utf-8"></script>
     <script>
         var HealthGlyph = new Glyph("#HealthGlyph", "Health");
-        var db = "Health.json";
+        var db = "/data/Health";
         d3.json(db, function(data){
             HealthGlyph.dim1 = "is1";
             HealthGlyph.dim2 = "is2";
@@ -117,7 +117,7 @@
         });
         
         var DescGlyph = new Glyph("#DescGlyph", "Discriminative");
-        var db = "Discriminative.json";
+        var db = "/data/Discriminative";
         d3.json(db, function(data){
             DescGlyph.dim1 = "is1";
             DescGlyph.dim2 = "is2";
@@ -128,7 +128,7 @@
         });
 
         var FreqGlyph = new Glyph("#FreqGlyph", "Frequent");
-        var db = "Frequent.json";
+        var db = "/data/Frequent";
         d3.json(db, function(data){
             FreqGlyph.dim1 = "is1";
             FreqGlyph.dim2 = "is2";
@@ -139,7 +139,7 @@
         });
 
         var ZocGlyph = new Glyph("#ZocGlyph", "ZocDoc");
-        var db = "zocdoc.json";
+        var db = "/data/zocdoc";
         d3.json(db, function(data){
             ZocGlyph.dim1 = "is1";
             ZocGlyph.dim2 = "is2";

@@ -21,8 +21,6 @@ var pReview = new Loader("#rLoading");
 
 loadDatabase("Discriminative");
 var scatter1 = {};
-var scatter2 = {};
-var scatter3 = {};
 var reviewList = {};
 
 
@@ -54,10 +52,7 @@ function reload(db){
         reviewList.clean();
         scatter1.clean(data);
         scatter1.draw(data);
-        
-        scatter2.draw();
-        scatter3.draw();
-         pGlobal.hide();
+        pGlobal.hide();
     }).on('progress', function(){
          pGlobal.update(d3.event.loaded/ d3.event.total);
      });
@@ -70,8 +65,7 @@ function chageDb(a){
 
 function chageVariable(a){
     scatter1.changeY("variance"  + a.value);
-    scatter2.changeY("variance"  + a.value);
-    scatter3.changeY("variance"  + a.value);
+    scatter1.colorFix();
     //reload(a.value);
 }
 
@@ -79,22 +73,25 @@ function CountChange(e){
     countLimit = e.value;
     
     scatter1.draw(data);
-    if(scatter1.selected && scatter1.selected._id)
-        scatter2.draw(scatter1.selected.qualifiers);
-        //scatter2.draw(scatter1.selected.qualifiers);
-    if(scatter2.selected && scatter2.selected._id)
-        scatter3.draw(scatter2.selected.modifiers);
+    scatter1.colorFix();
+    
 }
+
+function clearRescale(e){
+    data = data.filter(function(f) {return f.count >= countLimit});
+    
+    scatter1.draw(data);
+    scatter1.colorFix();
+    
+}
+
 
 function changeListType(){
     var sel = document.getElementById("slctReview").value;
     
     if(scatter1.selected && scatter1.selected._id)
         var f = scatter1.selected._id;
-    if(scatter2.selected && scatter2.selected._id)
-        var q = scatter2.selected._id;
-    if(scatter3.selected && scatter3.selected._id)
-        var m = scatter3.selected._id;
+   
     
     var s = document.getElementById("slctSort").value;
     
@@ -115,10 +112,7 @@ function loadReviewsByBusiness(id){
     
     if(scatter1.selected && scatter1.selected._id)
         var f = scatter1.selected._id;
-    if(scatter2.selected && scatter2.selected._id)
-        var q = scatter2.selected._id;
-    if(scatter3.selected && scatter3.selected._id)
-        var m = scatter3.selected._id;
+    
     
     var s = document.getElementById("slctSort").value;
     
@@ -135,51 +129,24 @@ function loadDatabase(database){
         scatter1.draw(data);
         scatter1.onSelected = function(d){
             var s = document.getElementById("slctSort").value;
-            reviewList.loadreviews(undefined, s, d._id);
-            scatter2.clean({},true);
+            reviewList.loadreviews(undefined,s,scatter1.selected.feature, d.qName);
+            //reviewList.loadreviews(undefined, s, d._id);
+            
         }  
         scatter1.onHighlight = function(d){
-            scatter2.draw(d.qualifiers);
+            
 
         }
         scatter1.onClean = function(d){
-            scatter2.draw(null);
+            
         }
         
-        scatter2 = new Scatter("#qualiScatter", null, "avg", "varianceW", "count", "_id", "small", "qualifier", scatter1);
-         scatter2.draw();
-        scatter2.onSelected = function(d){
-             var s = document.getElementById("slctSort").value;
-            reviewList.loadreviews(undefined,s,scatter1.selected._id, d._id);
-            scatter3.clean();
-        }  
-        scatter2.onHighlight = function(d){
-            scatter3.draw(d.modifiers);
-        }
-        scatter2.onClean = function(d){
-            scatter3.draw(null);
-        }
-        scatter3 = new Scatter("#modiScatter", null, "avg", "varianceW", "count", "_id", "small", "modifier", scatter2);
-        scatter3.draw();
-         scatter3.onSelected = function(d){
-            var s = document.getElementById("slctSort").value;
-            reviewList.loadreviews(undefined,s, scatter1.selected._id,scatter2.selected._id, d._id);
-        }  
+        
          pGlobal.hide();
     }).on('progress', function(){
          pGlobal.update(d3.event.loaded/ d3.event.total);
      });
 }
-
-function getSelectedText(elementId) {
-    var elt = document.getElementById(elementId);
-
-    if (elt.selectedIndex == -1)
-        return null;
-
-    return elt.options[elt.selectedIndex].text;
-}
-
 
 function Scatter(id, data, xField, yField, sField, label, type, part, master){
     var self = this;
@@ -188,7 +155,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
   
     self.changeY = function(value){
         self.yField = value;
-        self.draw(self.data);
+        self.draw(self.data, true);
     }
     
     self.init = function(){
@@ -236,7 +203,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
                 s.margin = {top: 20, right: 0, bottom: 30, left: 40};
                 s.width =  s.style("width").replace('px','') - self.list.style("width").replace('px','');
                 s.innerWidth = s.width - s.margin.left - s.margin.right;
-                s.height =  s.style("height").replace('px','');
+                s.height =  500; //s.style("height").replace('px','');
                 s.innerHeight = s.height - s.margin.top - s.margin.bottom;
             }
             
@@ -285,12 +252,18 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
         }
        
         self.scatter.selectAll(".dot").attr("class", function(c){ 
-            return (c._id == d._id ? "dot highlighted": (c.isMaster ? "dot master" : "dot")) 
+            return (c._id == d._id ? "dot highlighted": 
+                    (c.isMaster ? "dot master" : "dot")) 
+                + ((self.selected) ? " isSelected" : "")
                 + ((self.selected && c._id == self.selected._id ) ? " selected" : "")
+                + ((self.selected && c.feature == self.selected.feature ) ? " sibling" : "")
+            + ((self.selected && c.qName == self.selected.qName ) ? " qsibling" : "")
         }) ;
         self.list.selectAll("li").attr("class", function(c){ 
           return (c._id == d._id ? "dot highlighted": (c.isMaster ? "dot master" : "dot")) 
                 + ((self.selected && c._id == self.selected._id ) ? " selected" : "")
+                + ((self.selected && c.feature == self.selected.feature ) ? " sibling" : "")
+          + ((self.selected && c.qName == self.selected.qName ) ? " qsibling" : "")
         }) ;
         self.title.bar.style("display","block");
         self.DrawBar(d);
@@ -300,16 +273,30 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
     }
    
     self.colorFix = function(d){
+        if(!d)
+            d = { _id: "####" }
         self.scatter.selectAll(".dot").attr("class", function(c){ 
             return (c._id == d._id ? "dot highlighted": (c.isMaster ? "dot master" : "dot")) 
+                + ((self.selected) ? " isSelected" : "")
                 + ((self.selected && c._id == self.selected._id ) ? " selected" : "")
+                + ((self.selected && c.feature == self.selected.feature ) ? " sibling" : "")
+                + ((self.selected && c.qName == self.selected.qName ) ? " qsibling" : "")
         }) ;
         self.list.selectAll("li").attr("class", function(c){ 
           return (c._id == d._id ? "dot highlighted": (c.isMaster ? "dot master" : "dot")) 
                 + ((self.selected && c._id == self.selected._id ) ? " selected" : "")
+                + ((self.selected && c.feature == self.selected.feature ) ? " sibling" : "")
+                + ((self.selected && c.qName == self.selected.qName ) ? " qsibling" : "")
         }) ;
     }
     
+    self.getClass = function(c) {
+        return  (c.isMaster ? "dot master" : "dot")
+                + ((self.selected) ? " isSelected" : "")
+                + ((self.selected && c._id == self.selected._id ) ? " selected" : "")
+                + ((self.selected && c.feature == self.selected.feature ) ? " sibling" : "")
+                + ((self.selected && c.qName == self.selected.qName ) ? " qsibling" : "")
+    }
    
     
     self.clean = function(d, clSelected){
@@ -333,6 +320,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
     }
     
     self.select = function(d){
+        console.log(d);
         if(self.selected && self.selected._id == d._id){
             self.selected = undefined;
             self.colorFix(d);
@@ -364,7 +352,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
     
     
     //Draw -------------------------------------------
-    self.draw = function(data){
+    self.draw = function(data,noSort){
         
         self.data = data;
         if(!data){
@@ -374,16 +362,18 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
             self.element.style("display", "inline-block");
         }
         //data = data.filter(function(e){ return e.count >= countLimit });
-        data.sort(function(a, b) {
-            if(a.isMaster){
-                return 1;
-            }
-            if(b.isMaster){
-                return -1;
-            }
-            
-          return b.count - a.count;
-        });
+        if(!noSort){
+            data.sort(function(a, b) {
+                if(a.isMaster){
+                    return 1;
+                }
+                if(b.isMaster){
+                    return -1;
+                }
+
+              return b.count - a.count;
+            });
+        }
        
         
         if(showMaster)
@@ -452,7 +442,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
         var l =  self.list.ul.selectAll("li").data(data);
         l.enter()
             .append("li")
-            .attr("class", function(d) { return d.isMaster ? "dot master" : "dot"})
+            .attr("class", function(d) { return self.getClass(d) })// return d.isMaster ? "dot master" : "dot"})
             .text(function(d){return d[label]})
             .style("display", function(d){ return ((self.type != "small" && d.count < countLimit) || d.isMaster) ? "none": "list-item" })
             .on("mouseover", function(d) {
@@ -551,25 +541,33 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
           .call(s.xGrid.tickSize(- s.innerHeight, 0, 0).tickFormat(""))
         
         // y-axis
-        var yAxis = s.svg.append("g")
+        s.svg.append("g")
             .attr("transform", "translate(" + s.margin.left + "," + 0 + ")")
             .attr("class", "y axis")
-            .call(s.yAxis);
-        
-        
+            .call(s.yAxis)
+        .append("text")
+            .attr("class", "label")
+            .attr("transform", "rotate(-90)")
+            .attr("x",-20)
+            .attr("y",5)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("variance");
         
         s.svg.append("g")
           .attr("class", "grid yg")
           .attr("transform", "translate(" + s.margin.left + "," + 0 + ")")
           .call(s.yGrid.tickSize(-(s.innerWidth - 40), 0, 0).tickFormat(""))
-        
-         s.svg
+        //x1="0" y1="0" x2="200" y2="200"
+        s.svg
             .append("line") 
             .attr("class","avgLine")
             .attr("x1", function(){ return s.xScale(totals.avg)})
             .attr("x2", function(){ return s.xScale(totals.avg)})
             .attr("y1", 20)
             .attr("y2", 470)
+        
+        
         
         
         var dots = s.svg.selectAll(".dot").data(data);
@@ -599,14 +597,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
                 self.remove(d);
             });
         dots.exit().remove();
-        yAxis.append("text")
-            .attr("class", "label")
-            .attr("transform", "rotate(-90)")
-            .attr("x",-20)
-            .attr("y",5)
-            .attr("dy", ".71em")
-            .style("text-anchor", "end")
-            .text(function(){ return getSelectedText('showVariable'); });
+        
         s.isDraw = true;
             self.colorFix({});
     }
@@ -615,7 +606,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
         var s = self.scatter;
         var dots = s.svg.selectAll(".dot").data(data);
         dots.enter().append("circle")
-            .attr("class", function(d) { return d.isMaster ? "dot master" : "dot"})
+            .attr("class", function(d) { return self.getClass(d) })// { return d.isMaster ? "dot master" : "dot"})
             .attr("r", s.sizeMap)
             .attr("cx", s.xMap)
             .attr("cy", s.yMap)
@@ -640,7 +631,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
         dots.exit().remove();
         var t = s.svg.transition().duration(500);
             t.selectAll(".dot")
-                .attr("class", function(d) { return d.isMaster ? "dot master" : "dot"})
+                .attr("class", function(d) { return self.getClass(d) })// { return d.isMaster ? "dot master" : "dot"})
                 .attr("cy", s.yMap)
                 .attr("cx", s.xMap)
                 .attr("r", s.sizeMap)
@@ -652,19 +643,13 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
             
             t.selectAll(".yg").call(s.yGrid.tickSize(-(s.innerWidth - 40), 0, 0).tickFormat(""))
             t.selectAll(".xg").call(s.xGrid.tickSize(- s.innerHeight, 0, 0).tickFormat(""))
-            
-             t.selectAll(".avgLine")
+        
+            t.selectAll(".avgLine")
             .attr("x1", function(){ return s.xScale(totals.avg)})
             .attr("x2", function(){ return s.xScale(totals.avg)})
-             
-             t.selectAll(".y").selectAll(".label")
-                .attr("x",-20)
-                .attr("y",5)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
-                .text(function(){ return getSelectedText('showVariable'); });
             
-        console.log('redrwan'); 
+        
+            console.log('redrwan'); 
         
         self.colorFix({});    
     }
@@ -1116,6 +1101,7 @@ function mean(arr)
 function parseData(d){
     data = d.data;
     totals = d.totals;
+    console.log(totals);
     collectionSearch = d.collectionSearch;
     
     totals.is1P = totals.is1/totals.count;
@@ -1132,6 +1118,19 @@ function parseData(d){
     totals.is4W = totals.Maxstars/totals.is4; 
     totals.is5W = totals.Maxstars/totals.is5; 
     
+    var newData = [];
+    data.forEach(function(f){
+        f.qualifiers = f.qualifiers.slice(0, 50);
+        f.qualifiers.forEach(function(q){
+            q.qName = q._id;
+            q._id = q._id + "  "  + f._id;
+            q.feature = f._id;
+            newData.push(q);
+        })
+    })
+    
+    
+    data = newData;
     calc(data);
 }
 function calc(data)
@@ -1193,7 +1192,7 @@ function calc(data)
             Math.pow(totals.is1P-feature.isD1,2) +
             Math.pow(totals.is1P-feature.isD1,2) +
             Math.pow(totals.is1P-feature.isD1,2));
-        
+         
         //Cosine Distance
         feature.isD1 = feature.isH1;
         feature.isD2 = feature.isH2;
@@ -1237,7 +1236,10 @@ function calc(data)
                  Math.pow(feature.isD2,2) + 
                  Math.pow(feature.isD3,2) + 
                  Math.pow(feature.isD4,2) + 
-                 Math.pow(feature.isD5,2)))) 
+                 Math.pow(feature.isD5,2))) 
+            )
+        
+        
         
         
         //Weigh Variance

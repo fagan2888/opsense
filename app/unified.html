@@ -4,6 +4,35 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
         <link rel="stylesheet" href="css/style.css" />
+           <style>
+            .scScatter{
+                height: 400px;
+                width: 100%;
+            }
+            
+            .scTitle {
+                height: 50px;
+            }
+               .sibling{
+                   fill: black;
+                   background-color: #ddd;
+                   fill-opacity: 0.6 !important;
+               }
+               .qsibling{
+                   fill: #d60000;
+                   background-color: #dec2c2;
+                   fill-opacity: 0.6 !important;
+               }
+               .isSelected{
+                   fill-opacity: 0.2;
+               }
+            .avgLine{
+                stroke-width:1;
+                stroke: red;
+                
+            }
+        </style>
+        
     </head>
     <body>
         <div id="topBar">
@@ -23,7 +52,7 @@
               </div>
               <div class="form-group  form-group-sm">
                   <label>Variable: </label>
-                  <select  class="form-control" id="showVariable"  onchange="chageVariable(this)">
+                  <select  class="form-control" onchange="chageVariable(this)">
                         <option value="W">Weigth Variance</option>
                         <option value="R">Ratio</option>
                         <option value="H">Normal Variance</option>
@@ -34,7 +63,8 @@
               </div>
              <div class="form-group  form-group-sm">
                   <label>Min count: </label>
-                  <input type="number" style="width: 50px;" onchange="CountChange(this)" class="form-control" value="5" />
+                  <input type="number" style="width: 100px;" onchange="CountChange(this)" class="form-control" value="5" />
+                  <button class="btn btn-sm btn-error" onclick="clearRescale()">Clear/Rescale</button>
               </div>
              
              <div class="form-group  form-group-sm">
@@ -45,11 +75,8 @@
             
             </div>
        </div>
-        <div id="mainScatter" class="chart"></div>
-        <div>
-            <div id="qualiScatter" class="chart"></div>
-            <div id="modiScatter" class="chart"></div>
-        </div>
+        <div id="mainScatter" class="chart" style="height:600px;"></div>
+        
         <div id="ctrlReviews">
             <label>By: </label>
             <select id="slctReview" onchange="changeListType()">
@@ -91,5 +118,5 @@
     <script src="https://code.jquery.com/jquery-1.11.2.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    <script src="js/main.js" charset="utf-8"></script>
+    <script src="js/unified.js" charset="utf-8"></script>
 </html>
