@@ -142,7 +142,7 @@ function searchData(db, sort, feature, qualifier, modifier, callback, collName) 
         var feature = quote(request.param('f'));
         var qualifier = quote(request.param('q'));
         var modifier = quote(request.param('m'));
-        var sort = request.param('s');
+        var sort = quote(request.param('s'));
         var col = request.param('col') || 'reviews_Top50SearchHealth';
         
         
