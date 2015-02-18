@@ -48,7 +48,7 @@ function Loader(element){
 
 function reload(db){
     pGlobal.show();
-   d3.json('/data/'+ db, function(error, d) {
+   d3.json('data/'+ db, function(error, d) {
         parseData(d);
         
         reviewList.clean();
@@ -127,7 +127,7 @@ function loadReviewsByBusiness(id){
 
 function loadDatabase(database){
     pGlobal.show();
-     d3.json('/data/'+ database, function(error, d) {
+     d3.json('data/'+ database, function(error, d) {
         parseData(d);
         
         reviewList = new ReviewsList("#reviewList"); 
@@ -710,7 +710,7 @@ function ReviewsList(id) {
         
         var sel = document.getElementById("slctReview").value;
         if(sel == "reviews") {
-           self.currentXhr = d3.json("/api/GetReviews/?col=" + collectionSearch + "&id="+ idBus +"&s="+ s +"&f=" + f + ( q ? "&q=" + q: "")  + ( m ? "&m=" + m: ""), function(error, d){
+           self.currentXhr = d3.json("api/GetReviews/?col=" + collectionSearch + "&id="+ idBus +"&s="+ s +"&f=" + f + ( q ? "&q=" + q: "")  + ( m ? "&m=" + m: ""), function(error, d){
                self.key = { feature: f, qualifier: q, m: m}; 
                self.draw(d);
                pReview.hide();
@@ -720,7 +720,7 @@ function ReviewsList(id) {
            self.key = { feature: f, qualifier: q, m: m};
         }
         else {
-            self.currentXhr = d3.json("/api/GetBusiness/?s="+ s +"&f=" + f + ( q ? "&q=" + q: "")  + ( m ? "&m=" + m: ""), function(error, d){
+            self.currentXhr = d3.json("api/GetBusiness/?s="+ s +"&f=" + f + ( q ? "&q=" + q: "")  + ( m ? "&m=" + m: ""), function(error, d){
                 self.key = { feature: f, qualifier: q, m: m}; 
                 self.drawBusiness(d);
                 pReview.hide();
@@ -1002,7 +1002,7 @@ function addFeature(){
     var feature = document.getElementById("txtAddFeature").value;
     if(feature.length > 0)
     {
-        d3.json("/api/GetFeature?f=" + feature, function(error, d){
+        d3.json("api/GetFeature?f=" + feature, function(error, d){
             if(d && d != null){
                 var exist = false;
                 for(i =0; i < data.length; i++)
