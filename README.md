@@ -1,2 +1,2 @@
-yelp-viz
+Review Sense
 ========
