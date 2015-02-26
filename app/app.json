@@ -1,7 +1,0 @@
-{
-  "name": "yelp-viz",
-  "description": "A tool to explore Yelp reviews",
-  "repository": "https://github.com/nyuvis/yelp-viz",
-  "logo": "http://engineering.academickeys.com/seeker_job_attachments.php?dothis=display&job_file%5BIDX%5D=7319",
-  "keywords": ["node", "yelp", "mongodb"]
-}
