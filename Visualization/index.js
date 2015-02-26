@@ -7,7 +7,7 @@ var MongoClient = require('mongodb').MongoClient
 app.use("/css", express.static(__dirname +'/css'));
 app.use("/js", express.static(__dirname +'/js')); 
 //var mongostring = 'mongodb://read:Yelp2015@ds029931-a0.mongolab.com:29931/heroku_app32907721'
-var mongostring = 'mongodb://127.0.0.1:27017/Yelp'
+var mongostring = 'mongodb://127.0.0.1:27017/Yelp15'
 var db = null;
 
 
