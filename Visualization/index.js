@@ -84,6 +84,7 @@ function searchData(db, sort, feature, qualifier, modifier, callback, collName) 
         var params = {tuples: { $elemMatch:{"feature": feature,"qualifier": qualifier,"modifier": modifier}}};
     
     //'reviews_Top50SearchHealth'
+    console.log(params);
     var collection = db.collection(collName);
     collection.find(params, {_id: 1}).sort({"votes.useful": -1}).limit(200).toArray(function(err, result){
         var ids = [];   
@@ -97,7 +98,7 @@ function searchData(db, sort, feature, qualifier, modifier, callback, collName) 
             sort = {"stars": 1};    
         else if(sort == "rd")
             sort = {"stars": -1};
-        
+        console.log(ids);
         var pipeline = [
             {$match: {"review_id" : {$in: ids}}},
             {$unwind: "$features"},
@@ -122,6 +123,7 @@ function searchData(db, sort, feature, qualifier, modifier, callback, collName) 
             {$sort: sort}
         ];
         
+        collSearch = collName == "reviews_Top60SearchZoc" ? 'zocdoc_processed' : 'reviews_processed';
         
         db.collection('reviews_processed').aggregate(pipeline,function(err, result){
             callback(err,result);
@@ -176,7 +178,7 @@ function searchData(db, sort, feature, qualifier, modifier, callback, collName) 
         var feature = request.param('f');
         var collection = db.collection('FeatureListWithQualifers');
 	      	
-        collection.findOne({_id: feature}, { qualifiers: { $slice: 50 } }, function(err,results){
+        collection.findOne({_id: "{$regec"}, { qualifiers: { $slice: 50 } }, function(err,results){
             response.json(results);
         })
 	})

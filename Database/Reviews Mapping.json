@@ -1,0 +1,82 @@
+{
+    "mappings" : {
+      "reviews" : {
+        "properties" : {
+          "date" : {
+            "type" : "date",
+            "format" : "dateOptionalTime"
+          },
+          "entity_id" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "rank" : {
+            "type" : "long"
+          },
+          "rating" : {
+            "type" : "long"
+          },
+          "terms" : {
+          	"type": "nested"
+            "properties" : {
+              "d" : {
+                "properties" : {
+                  "ed" : {
+                    "type" : "long"
+                  },
+                  "ix" : {
+                    "type" : "long"
+                  },
+                  "lm" : {
+                    "type" : "string"
+                  },
+                  "st" : {
+                    "type" : "long"
+                  },
+                  "tg" : {
+                    "type" : "string"
+                  },
+                  "wd" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "g" : {
+                "properties" : {
+                  "ed" : {
+                    "type" : "long"
+                  },
+                  "ix" : {
+                    "type" : "long"
+                  },
+                  "lm" : {
+                    "type" : "string"
+                  },
+                  "st" : {
+                    "type" : "long"
+                  },
+                  "tg" : {
+                    "type" : "string"
+                  },
+                  "wd" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "r" : {
+                "type" : "string"
+              }
+            }
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "user_id" : {
+            "type" : "string"
+          }
+        }
+      }
+    }
+  }

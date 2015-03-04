@@ -27,5 +27,25 @@
   		<artifactId>stanford-parser</artifactId>
   		<version>3.5.1</version>
   	</dependency>
+  	<dependency>
+  		<groupId>edu.stanford.nlp</groupId>
+  		<artifactId>stanford-corenlp</artifactId>
+  		<version>3.5.1</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>net.sf.jgrapht</groupId>
+  		<artifactId>jgrapht</artifactId>
+  		<version>0.8.3</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.glassfish</groupId>
+  		<artifactId>javax.json</artifactId>
+  		<version>1.0.4</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.elasticsearch</groupId>
+  		<artifactId>elasticsearch</artifactId>
+  		<version>1.4.4</version>
+  	</dependency>
   </dependencies>
 </project>
