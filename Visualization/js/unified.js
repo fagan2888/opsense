@@ -475,13 +475,11 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
         console.log(data);
         var stars = [data.isH1, data.isH2, data.isH3, data.isH4, data.isH5];
         var x0 = 0;
-        console.log(stars)
-        console.log(b.width)
+
         stars = stars.map(function(value) { 
             return {v: value ,x0: x0, x1: x0 += b.xScale(value)}; 
         });
-        console.log(stars)
-        
+          
         if(b.isDraw){
             self.ReDrawBar(stars);
         }
@@ -610,7 +608,7 @@ function Scatter(id, data, xField, yField, sField, label, type, part, master){
             .attr("r", s.sizeMap)
             .attr("cx", s.xMap)
             .attr("cy", s.yMap)
-            .style("visibility", function(d) { console.log(d.count); return d.count >= countLimit ? "visible": "hidden";})
+            .style("visibility", function(d) { return d.count >= countLimit ? "visible": "hidden";})
             .on("mouseover", function(d) {
                 if(!d.isMaster)
                     self.highlight(d);
@@ -1137,6 +1135,7 @@ function calc(data)
 {
     if(!data)
         return;
+    console.log(data);
      data.forEach(function(feature){
          
         //Normal Variance
@@ -1215,11 +1214,7 @@ function calc(data)
                  Math.pow(feature.isD3,2) + 
                  Math.pow(feature.isD4,2) + 
                  Math.pow(feature.isD5,2))
-         if(feature._id == "same  food"){
-             console.log(part1);
-             console.log(part2);
-             console.log(part3);
-         }
+         
         feature.varianceC = 1 -
             (totals.is1P*feature.isD1 + 
             totals.is2P*feature.isD2 + 
