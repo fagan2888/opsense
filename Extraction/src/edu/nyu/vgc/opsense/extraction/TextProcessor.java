@@ -57,7 +57,7 @@ public class TextProcessor {
 		return Json.createObjectBuilder()
 				.add("wd", word.word())
 				.add("lm", word.lemma())
-				.add("st", word.beginPosition())
+				.add("sr", word.beginPosition())
 				.add("ed", word.endPosition())
 				.add("tg", word.tag())
 				.add("st", word.sentIndex())

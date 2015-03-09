@@ -14,7 +14,7 @@
 
 /*Sizes*/
 @FieldSelectionWidth: 120px;
-@TermsWidth: 120px;
+@TermsWidth: 135px;
 @TopBarHeight: 35px;
 @SnippetsWitdth: 200px;
 
@@ -227,6 +227,7 @@ svg{
             cursor: pointer;
             list-style: none;
             user-select: none;
+            padding-left: 5px;
             -webkit-user-select: none;
             -khtml-user-select: none;
             -moz-user-select: none;
@@ -236,6 +237,23 @@ svg{
             }
             
         }
+        li.similar1 {
+             background-color: @similar1;
+            color: white;
+        }
+        li.similar2 {
+             background-color:  @similar2;
+            color: white;
+        }
+        li.selected{
+            background-color:  @selected;
+            color: white;
+        }
+        li.highlight{
+            background-color:  @highlight;
+            color: white;
+        }
+
         
     }
     .selectedList{
@@ -252,6 +270,27 @@ svg{
     margin-left: @FieldSelectionWidth+@TermsWidth+30;
     padding-top: @TopBarHeight+20;
     margin-right: @SnippetsWitdth;
+}
+#snippetList{
+    position: fixed;
+    right: 0;
+    bottom: 0px;
+    top: @TopBarHeight+10;
+    width: @SnippetsWitdth;
+    overflow: auto;
+    ul{
+        padding-left: 0px;
+        margin: 0px;
+        font-size: 10px;
+        
+        li{
+            margin-top: 5px;
+            border-bottom: solid 1px #ccc;
+        }
+        .entity{
+            color: @blue;
+        }
+    }
 }
 
 

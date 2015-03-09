@@ -5,6 +5,9 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,62 +68,91 @@ public class MongoUtil {
 	}
 	
 	public void getDataToProcess(){
-		String output = "/Volumes/Backup/Datasets/processText/yelp_health_raw.json";
+		String output = "/Volumes/Backup/Datasets/processText/zocDoc_raw.json";
 		
-		DB db = getDB("Yelp");
-        DBCollection entityCollection = db.getCollection("_business");
-        DBCollection authorCollection = db.getCollection("_user");
-        DBCollection textCollection = db.getCollection("_review");
-        String authorID = "user_id";
-        String entityID = "business_id";
+		DB db = getDB("ZocDoc");
+        DBCollection entityCollection = db.getCollection("doctors_copy");
+        //DBCollection authorCollection = db.getCollection("_user");
+        //DBCollection textCollection = db.getCollection("_review");
+        //String authorID = "user_id";
+        String entityID = "Id";
         String textID = "review_id";
         
-        String[] rmAuthor = {"_id","type"};
-        String[] rmEntity = {"_id", "open", "type","review_count", "stars"};
-        String[] rmText = {"_id", "user_id","type","business_id"};
+        String[] rmAuthor = {};
+        String[] rmEntity = {"Comment","MainSpecialtyId", "ProviderId", "LocationId", 
+        		"Rating", "Address1", "Address2", "Count", "Processed", "ProfId", "_id", "Reviews" };
+        String[] rmText = {"Author"};
         
-        String[] countAuthor = {"friends"};
+        String[] countAuthor = {};
         String[] countEntity = {};
         String[] countText = {};
         
         //Get Business
-        int total = entityCollection.find(new BasicDBObject("categories", "Health & Medical")).count();
+        int total = entityCollection.find().count();
         int limit = total;
-        //limit = 10;
+        //limit = 4;
         int count[] = new int[1];
         count[0] = 1;
         StopWatch timer = new StopWatch();
 		timer.start();
-		entityCollection.find(new BasicDBObject("categories", "Health & Medical")).limit(limit).forEach(e ->{
+		entityCollection.find().limit(limit).forEach(e ->{
 			//Get Reviews of business
 			System.out.println(
 					String.format("%10s", count[0]++) +
+					String.format("%10s", total) +
 					String.format("%30s", e.get(entityID)) +
 					String.format("%20s", timer.getTime()) +
 					String.format("%20s", timer.getTime()/count[0]) 
 					
 			);
-			int countE = textCollection.find(new BasicDBObject(entityID, e.get(entityID))).count();
-			e.put("docCount", countE);
-			textCollection.find(new BasicDBObject(entityID, e.get(entityID))).forEach(t -> {
-				//Get the users of reviews
-				DBObject a = authorCollection.findOne(new BasicDBObject(authorID, t.get(authorID)));
-				int countA = textCollection.find(new BasicDBObject(authorID, t.get(authorID))).count();
-				a.put("docCount", countA);
-				
-				//Clear
-				clear(e, rmEntity, countEntity, entityID);
-				clear(a, rmAuthor, countAuthor, authorID);
-				clear(t, rmText, countText, textID);
-				
-				BasicDBObject result = new BasicDBObject();
-				result.put("entity", e);
-				result.put("author", a);
-				result.put("document", t);
-				writeToFile(output, result);
-			});
+			int countE = ((BasicDBList)e.get("Reviews")).size();
+			if(countE > 0){
+				e.put("docCount", countE);
+				int countReview[] = new int[1];
+				countReview[0] = 1;
+				((BasicDBList)e.get("Reviews")).forEach(t -> {
+					//Get the users of reviews
+					//DBObject a = authorCollection.findOne(new BasicDBObject(authorID, t.get(authorID)));
+					//int countA = textCollection.find(new BasicDBObject(authorID, t.get(authorID))).count();
+					//a.put("docCount", countA);
+					
+					//Clear
+					DBObject e1 = clear(e, rmEntity, countEntity, entityID, true);
+					
+					DBObject a = new BasicDBObject();
+					a.put("Name", ((DBObject)t).get("Author"));
+					a.put("id", ((DBObject)t).get("Author"));
+					//clear(a, rmAuthor, countAuthor, authorID);
+					
+					clear((DBObject)t, rmText, countText, textID);
+					((DBObject)t).put("id", e.get(entityID).toString() + "_" + countReview[0]++);
+					((DBObject)t).put("When", fixDate("MMM dd, yyyy", ((DBObject)t).get("When").toString()));
+					
+					BasicDBObject result = new BasicDBObject();
+					result.put("entity", e1);
+					result.put("author", a);
+					result.put("document", t);
+					//printJson(result);
+					writeToFile(output, result);
+				});
+			}
 		});
 		//Save to file		
+	}
+	
+	public String fixDate(String format, String sDate){
+		Date dateD = null;
+		DateFormat df = new SimpleDateFormat(format);
+		DateFormat dof = new SimpleDateFormat("yyy-MM-dd");
+		
+		try {
+			dateD = df.parse(sDate);
+		} catch (Exception e) {
+			//e.printStackTrace();
+			return null;
+		}
+		
+		return dof.format(dateD);
 	}
 	
 	public void writeToFile(String file, DBObject obj){
@@ -131,9 +163,17 @@ public class MongoUtil {
 		}
 	}
 	
-	public void clear(DBObject obj,String[] rm , String[] count, String idField){
+	public DBObject clear(DBObject obj,String[] rm , String[] count, String idField, boolean copy){
+		if(copy)
+			obj = new BasicDBObject(obj.toMap());
 		for(String f : rm){
-			obj.removeField(f);
+			String[] fs = f.split("\\.");
+			DBObject obj2 = obj;
+			for(int i =0; i < fs.length-1; i++){
+				obj2 = (DBObject) obj2.get(fs[i]);
+			}
+			obj2.removeField(fs[fs.length-1]);
+			
 		}
 		for(String f : count){
 			BasicDBList lis = (BasicDBList) obj.get(f);
@@ -142,6 +182,12 @@ public class MongoUtil {
 		Object id = obj.get(idField);
 		obj.removeField(idField);
 		obj.put("id", id);
+		return obj;
+		
+	}
+	
+	public DBObject clear(DBObject obj,String[] rm , String[] count, String idField){
+		return clear(obj,rm,count,idField,false);
 		
 	}
 }

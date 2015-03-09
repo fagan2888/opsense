@@ -6,12 +6,15 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
         
         $scope.selectedCount = 0;
         $scope.init = function(){
-            $scope.index = "yelp";
-            $scope.gov = "nn";
-            $scope.dep = "jj";
+            $scope.reviews = [];
+            $scope.index = "yelp_health2";
+            $scope.pattern = "Noun+Adjective";
+            $scope.loadMeta();
+            
+            $scope.searchTerm = "";
             $scope.inter = true;
             $scope.termFilter = "";
-            $scope.load();
+            //$scope.load();
         }
      
         //Public----------------------------------
@@ -24,6 +27,7 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             i._selected = !i._selected;
             $scope.setSimilar();
             $scope.refresh(true);
+            $scope.loadreviews();
         }
         
         $scope.remove = function(d){
@@ -88,6 +92,7 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
         $scope.setData = function (newData){
             $scope.data = newData;
             $scope.scatter.setData($scope.data);
+           
         }
         
         $scope.refresh = function(sort){
@@ -95,12 +100,85 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             $scope.scatter.refresh(sort);
         }
         
+        $scope.getValue = function(review, axis){
+            if(axis == 'y'){
+                return review.source[$scope.yOperation.field.type.toLowerCase()][$scope.yOperation.field.text];
+            }
+            if(axis == 'x'){
+                console.log($scope.yOperation.field.type);
+                console.log(review);
+                return review.source[$scope.xOperation.field.type.toLowerCase()][$scope.xOperation.field.text];
+            }
+        }
+        
+        $scope.loadreviews = function(){
+            $scope.reviews = [];
+            var selecteds = $scope.getSelected()
+            db.loadReviews($scope.index, $scope.searchTerm, selecteds)
+            .then(function(result){
+                result.hits.hits.forEach(function(r){
+                    r = r._source;
+                    
+                    var feature = r.terms.filter(function (rl){
+                        var candKey1 = rl.g.lm + " " + rl.d.lm;
+                        var candKey2 = rl.d.lm + " " + rl.g.lm;
+                        for(i=0;i < selecteds.length; i++){
+                     
+                            if(selecteds[i].key == candKey1 || selecteds[i].key == candKey2)
+                                return true;
+                        }
+                        return false;
+                    })
+                    
+                    var end = feature[0].g.ed > feature[0].d.ed ? feature[0].g.ed : feature[0].d.ed;
+                    var start = feature[0].g.ed < feature[0].d.ed ? feature[0].g.ed-feature[0].g.wd.length : feature[0].d.ed-feature[0].d.wd.length;
+                    
+                    var text = r.document.text.substr(start,100);
+                    
+                    
+                    var review = { text: text, entity: r.entity.name, source: r};
+                    $scope.reviews.push(review);
+                })
+                
+            }); 
+        }
         $scope.load = function(){
-            db.get($scope.index, $scope.gov, $scope.dep, $scope.inter).then(function(result){
-                result = analytics.preProcess(result);
+            db.get2($scope.index, $scope.searchTerm,$scope.pattern,$scope.xOperation , $scope.yOperation).then(function(result){
+                result = analytics.preProcess(result, $scope.xOperation.operation, $scope.yOperation.operation);
                 $scope.setData(result);
                 $scope.refresh();
             })
+        }
+        $scope.loadMeta = function(){
+            $scope.fields = [];
+            db.mapping($scope.index).then(function(result){
+                result = result[$scope.index].mappings.documents.properties;
+                console.log(result);
+                for(f in result.author.properties){
+                    if(result.author.properties[f].type == "long" ||  result.author.properties[f].type == "double")
+                        $scope.fields.push({value: "author."+f, text: f, type: "Author"});
+                    else
+                        console.log(f);
+                }
+                for(f in result.document.properties){
+                     if(result.document.properties[f].type == "long" ||  result.document.properties[f].type == "double")
+                        $scope.fields.push({value: "document."+f, text: f, type: "Document"});
+                    else
+                        console.log(f);
+                }
+                for(f in result.entity.properties){
+                     if(result.entity.properties[f].type == "long" ||  result.entity.properties[f].type == "double")
+                        $scope.fields.push({value: "entity."+f, text: f, type: "Entity"});
+                    else
+                        console.log(f);
+                }
+                $scope.xOperation = {field: $scope.fields[0], operation: "avg"};
+                $scope.yOperation = {field: $scope.fields[0], operation: "value_count"};
+
+                console.log($scope.xOperation);
+            });
+            
+           
         }
                 
         //Events -------------------------------------------------------------
@@ -137,7 +215,7 @@ function Scatter(selector){
         innerHeight = height - margin.top - margin.bottom
     
     var x = {
-        field: "avg",
+        field: "x",
         desc: "Average",
         value: function(d) { return d[x.field];}, 
         scale: d3.scale.linear().range([0, innerWidth]),
@@ -149,7 +227,7 @@ function Scatter(selector){
         .tickPadding(10);
 
     var y = {
-        field: "variance",
+        field: "y",
         desc: "Frequency",
         value: function(d) { return d[y.field];}, 
         scale: d3.scale.linear().range([innerHeight, 0]),
@@ -160,7 +238,7 @@ function Scatter(selector){
         .outerTickSize(0)
         .tickPadding(10);
     var s = {
-        field: "count",
+        field: "review_count",
         desc: "Frequency",
         value: function(d) { return d[s.field];}, 
         scale: d3.scale.log().range([2, 20]),
@@ -276,6 +354,7 @@ function Scatter(selector){
     self.refresh = function(sorting){
         if(!built)
             return;
+         
         var delay = 500;
         if(sorting){
             data.sort(function (a,b){
@@ -289,10 +368,10 @@ function Scatter(selector){
                 if(b._similar > 0)
                    return -1;
 
-                if (a.count > b.count) {
+                if (a.review_count > b.review_count) {
                     return -1;
                 }
-                if (a.count < b.count) {
+                if (a.review_count < b.review_count) {
                     return 1;
                 }
                 return 0;

@@ -189,7 +189,7 @@ svg .domain {
   left: 142px;
   bottom: 0px;
   top: 35px;
-  width: 120px;
+  width: 135px;
   overflow: auto;
 }
 #TermsList ul {
@@ -201,6 +201,7 @@ svg .domain {
   cursor: pointer;
   list-style: none;
   user-select: none;
+  padding-left: 5px;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -208,6 +209,22 @@ svg .domain {
 }
 #TermsList ul li li.similar1 {
   background-color: #7acc5a;
+}
+#TermsList ul li.similar1 {
+  background-color: #7acc5a;
+  color: white;
+}
+#TermsList ul li.similar2 {
+  background-color: #ffc539;
+  color: white;
+}
+#TermsList ul li.selected {
+  background-color: #fe7328;
+  color: white;
+}
+#TermsList ul li.highlight {
+  background-color: #0bbaf4;
+  color: white;
 }
 #TermsList .selectedList {
   font-size: 12px;
@@ -219,7 +236,27 @@ svg .domain {
   padding-bottom: 5px;
 }
 #vizContainer {
-  margin-left: 270px;
+  margin-left: 285px;
   padding-top: 55px;
   margin-right: 200px;
+}
+#snippetList {
+  position: fixed;
+  right: 0;
+  bottom: 0px;
+  top: 45px;
+  width: 200px;
+  overflow: auto;
+}
+#snippetList ul {
+  padding-left: 0px;
+  margin: 0px;
+  font-size: 10px;
+}
+#snippetList ul li {
+  margin-top: 5px;
+  border-bottom: solid 1px #ccc;
+}
+#snippetList ul .entity {
+  color: #0bbaf4;
 }

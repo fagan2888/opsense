@@ -78,7 +78,7 @@ public class FileProcessor {
 			jsonReader.close();
 			
 			//printJson(object);
-			String text = object.getJsonObject("document").getString("text");
+			String text = object.getJsonObject("document").getString("Text");
 			JsonArray features = txtProc.process(text);
 			
 			object = jsonObjectToBuilder(object).add("terms", features).build();
@@ -121,8 +121,8 @@ public class FileProcessor {
 	
 	public static void main(String[] args) throws IOException{
 		FileProcessor file = new FileProcessor();
-		file.input("/Volumes/Backup/Datasets/processText/yelp_health_raw.json");
-		file.output("/Volumes/Backup/Datasets/processText/yelp_health.json");
+		file.input("/Volumes/Backup/Datasets/processText/zocDoc_raw.json");
+		file.output("/Volumes/Backup/Datasets/processText/zocDoc.json");
 		file.process(0, 100000);
 	}
 	

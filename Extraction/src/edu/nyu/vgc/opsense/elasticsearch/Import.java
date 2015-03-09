@@ -37,9 +37,9 @@ public class Import {
 	
 	public static void main (String[] args){
 		Import imp = new Import();
-		imp.source = "/Users/cristian/Downloads/rateprof_processed.json";
-		imp.index = "ratemyprofessor";
-		imp.type = "reviews";
+		imp.source = "/Volumes/Backup/Datasets/processText/yelp_health.json";
+		imp.index = "yelp_health2";
+		imp.type = "documents";
 		imp.go();
 	}
 	
@@ -76,28 +76,30 @@ public class Import {
 		count[0] = 0;
 		Path path = Paths.get(this.source); 
 		
-		
 		try (Stream<String> lines = Files.lines(path, Charset.defaultCharset())) {
-			  lines.skip(500000).limit(2500000).forEach(line -> {
+			  lines.skip(0).limit(1000000).forEach(line -> {
 				  
 			  	JsonReader jsonReader = Json.createReader(new StringReader(line));
 				JsonObject object = jsonReader.readObject();
 				jsonReader.close();
 				
-				String date = fixDate(object.getString("date"));
-				object = getBuilder(object).add("date", date).build();
+				//String date = fixDate(object.getString("date"));
+				//object = getBuilder(object).add("date", date).build();
 				
 				count[0]++;
 				
 				System.out.println(count[0]);
+				//printJson(object);
+				
 				client.prepareIndex(this.index, this.type)
 					.setSource(object.toString())
-					.setId(object.get("id").toString())
+					.setId(object.getJsonObject("document").get("id").toString())
 					.execute()
 					.actionGet();
 				
 			  });
 		} catch (Exception ex){
+			ex.printStackTrace();
 			System.err.println("Line: " + count[0] + "\n" + ex.getMessage());
 		}
 		System.out.println("done");

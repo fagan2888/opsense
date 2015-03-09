@@ -15,9 +15,9 @@
            <ul>
                 <li>
                    <label>Dataset: </label>
-                   <select>
-                       <option value="yelp">Yelp</option>
-                       <option value="yelp">rateMyProfessor</option>
+                   <select ng-model="index">
+                       <option value="yelp_health">Yelp Health</option>
+                       <option value="yelp_health2">Yelp Health 2</option>
                    </select>
                 </li>
                 <li>
@@ -26,7 +26,7 @@
                 </li>
                 <li>
                    <label>Filter: </label>
-                   <input type="text">
+                   <input type="text" ng-model="searchTerm">
                 </li>
                 <li>
                    <label>Min: </label>
@@ -42,19 +42,51 @@
            <ul>
                <li><h2>x Axis</h2></li>
                <li>
-                   <label>Field</label><select><option>rating</option></select>
+                   <label>Field</label>
+                   <select ng-model="xOperation.field" ng-options="field.text group by field.type for field in fields"></select>
+                   
                </li>
                <li>
-                   <label>Metric</label><select><option>rating</option></select>
+                   <label>Metric</label>
+                   <select ng-model="xOperation.operation">
+                        <option value="avg">Average</option>
+                        <option value="min">Min</option>
+                        <option value="max">Max</option>
+                        <option value="sum">Sum</option>
+                        <option value="value_count">Value Count</option>
+                        <option value="percentiles">Percentiles</option>
+                        <option value="terms">Terms</option>
+                        <option value="significant_terms">Sig. Terms</option>
+                        <option value="variance">Variance</option>
+                        <option value="std_deviation">Std. Deviation</option>
+                        <option value="date_histogram">Date Histogram</option>
+                        <option value="histogram">Histogram</option>
+                   </select>
                </li>
            </ul>
            <ul>
                <li><h2>y Axis</h2></li>
                <li>
-                   <label>Field</label><select><option>rating</option></select>
+                   <label>Field</label>
+                     <select ng-model="yOperation.field" ng-options="field.text group by field.type for field in fields"></select>
+
                </li>
                <li>
-                   <label>Metric</label><select><option>rating</option></select>
+                   <label>Metric</label>
+                   <select  ng-model="yOperation.operation">
+                        <option value="avg">Average</option>
+                        <option value="min">Min</option>
+                        <option value="max">Max</option>
+                        <option value="sum">Sum</option>
+                        <option value="value_count">Value Count</option>
+                        <option value="percentiles">Percentiles</option>
+                        <option value="terms">Terms</option>
+                        <option value="significant_terms">Sig. Terms</option>
+                        <option value="variance">Variance</option>
+                        <option value="std_deviation">Std. Deviation</option>
+                        <option value="date_histogram">Date Histogram</option>
+                        <option value="histogram">Histogram</option>
+                   </select>
                </li>
            </ul>
        </div>
@@ -76,6 +108,11 @@
             </ul>
        </div>
        <div class="mainVizualization" id="vizContainer"></div>
+       <div id="snippetList">
+           <ul>
+               <li ng-repeat="r in reviews"><span class="entity">@{{r.entity}}</span> - {{r.text}} <br />x: {{getValue(r, 'x')}}, y: {{getValue(r, 'y')}}</li>
+           </ul>
+       </div>
     </div>
     <script src="vendors/d3/d3.js"></script>
     <script src="vendors/angular/angular.js"></script>
