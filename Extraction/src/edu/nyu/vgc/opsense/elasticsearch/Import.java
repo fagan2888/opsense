@@ -37,8 +37,8 @@ public class Import {
 	
 	public static void main (String[] args){
 		Import imp = new Import();
-		imp.source = "/Volumes/Backup/Datasets/processText/yelp_health.json";
-		imp.index = "yelp_health2";
+		imp.source = "/Volumes/Backup/Datasets/processText/zocDoc.json";
+		imp.index = "zocdoc";
 		imp.type = "documents";
 		imp.go();
 	}
@@ -68,6 +68,19 @@ public class Import {
 	    return job;
 	}
 	
+	public JsonObjectBuilder rename(JsonObject jo, Map<String, String> map){
+		JsonObjectBuilder job = Json.createObjectBuilder();
+
+	    for (Entry<String, JsonValue> entry : jo.entrySet()) {
+	    	if(map.containsKey(entry.getKey()))
+	    		job.add(map.get(entry.getKey()), entry.getValue());
+	    	else
+	    		job.add(entry.getKey(), entry.getValue());
+	    }
+
+	    return job;
+	}
+	
 	public void go(){
 		@SuppressWarnings("resource")
 		Client client = new TransportClient()
@@ -77,14 +90,34 @@ public class Import {
 		Path path = Paths.get(this.source); 
 		
 		try (Stream<String> lines = Files.lines(path, Charset.defaultCharset())) {
-			  lines.skip(0).limit(1000000).forEach(line -> {
+			  lines.skip(0).limit(100000).forEach(line -> {
 				  
 			  	JsonReader jsonReader = Json.createReader(new StringReader(line));
 				JsonObject object = jsonReader.readObject();
 				jsonReader.close();
 				
 				//String date = fixDate(object.getString("date"));
-				//object = getBuilder(object).add("date", date).build();
+				JsonObject entity = rename((JsonObject)object.get("entity"), new HashMap<String,String>() {{
+			 		put("LongProfessionalName", "name");
+				}}).build();
+				
+				JsonObject author = rename((JsonObject)object.get("author"), new HashMap<String,String>() {{
+			 		put("Name", "name");
+				}}).add("docCount",0).build();
+				
+				JsonObject document = rename((JsonObject)object.get("document"), new HashMap<String,String>() {{
+			 		put("Text", "text");
+				}}).build();
+				
+				
+	
+				
+				object = getBuilder(object)
+					.add("entity", entity)
+					.add("author", author)
+					.add("document", document)
+					.build();
+				
 				
 				count[0]++;
 				

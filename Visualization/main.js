@@ -16,7 +16,11 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             $scope.termFilter = "";
             //$scope.load();
         }
-     
+        
+        $scope.$watch('index', function(newValue, oldValue) {
+            $scope.reloadAll();  
+        });
+        
         //Public----------------------------------
         $scope.highlight = function(i){ i._highlight = true; $scope.refresh();}
         $scope.unhighlight = function(i){ i._highlight = false; $scope.refresh();}
@@ -28,6 +32,17 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             $scope.setSimilar();
             $scope.refresh(true);
             $scope.loadreviews();
+        }
+        
+        $scope.reloadAll = function(){
+            $scope.pattern = "Noun+Adjective";
+            $scope.loadMeta();
+            $scope.searchTerm = "";
+            $scope.inter = true;
+            $scope.termFilter = "";
+            $scope.reviews = [];
+            $scope.setData([]);
+            $scope.refresh();
         }
         
         $scope.remove = function(d){
@@ -129,11 +144,22 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
                         }
                         return false;
                     })
+                   
+                    var text = "";
+                    var wStart;
+                    if(feature[0].g.ed > feature[0].d.ed){
+                        wStart = feature[0].d;
+                        wEnd = feature[0].g;
+                    } else {
+                        wStart = feature[0].g;
+                        wEnd = feature[0].d;
+                    }
+                    var start = wStart.ed- wStart.wd.length;
+                    var end = wEnd.ed;
+                        
+                        
                     
-                    var end = feature[0].g.ed > feature[0].d.ed ? feature[0].g.ed : feature[0].d.ed;
-                    var start = feature[0].g.ed < feature[0].d.ed ? feature[0].g.ed-feature[0].g.wd.length : feature[0].d.ed-feature[0].d.wd.length;
-                    
-                    var text = r.document.text.substr(start,100);
+                    text = r.document.text.substr(start,100);
                     
                     
                     var review = { text: text, entity: r.entity.name, source: r};
@@ -153,29 +179,22 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             $scope.fields = [];
             db.mapping($scope.index).then(function(result){
                 result = result[$scope.index].mappings.documents.properties;
-                console.log(result);
+
                 for(f in result.author.properties){
                     if(result.author.properties[f].type == "long" ||  result.author.properties[f].type == "double")
                         $scope.fields.push({value: "author."+f, text: f, type: "Author"});
-                    else
-                        console.log(f);
                 }
                 for(f in result.document.properties){
                      if(result.document.properties[f].type == "long" ||  result.document.properties[f].type == "double")
                         $scope.fields.push({value: "document."+f, text: f, type: "Document"});
-                    else
-                        console.log(f);
                 }
                 for(f in result.entity.properties){
                      if(result.entity.properties[f].type == "long" ||  result.entity.properties[f].type == "double")
                         $scope.fields.push({value: "entity."+f, text: f, type: "Entity"});
-                    else
-                        console.log(f);
                 }
                 $scope.xOperation = {field: $scope.fields[0], operation: "avg"};
                 $scope.yOperation = {field: $scope.fields[0], operation: "value_count"};
 
-                console.log($scope.xOperation);
             });
             
            
