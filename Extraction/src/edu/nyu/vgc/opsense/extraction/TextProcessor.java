@@ -27,6 +27,8 @@ public class TextProcessor {
 		relations.forEach(rln -> {
 			JsonObjectBuilder relation = Json.createObjectBuilder();
 			relation.add("r", rln.reln().getShortName());
+			relation.add("p", rln.gov().tag() + " " + rln.dep().tag());
+			relation.add("pr", rln.dep().tag() + " " + rln.gov().tag());
 			relation.add("g", indexedWordToJson(rln.gov()));
 			relation.add("d", indexedWordToJson(rln.dep()));
 			result.add(relation.build());

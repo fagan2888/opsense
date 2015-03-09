@@ -11,12 +11,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonValue;
 import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
@@ -75,22 +78,13 @@ public class FileProcessor {
 			jsonReader.close();
 			
 			//printJson(object);
-			String text = object.getString("rComments");
+			String text = object.getJsonObject("document").getString("text");
 			JsonArray features = txtProc.process(text);
-			int rating = object.getInt("rClarity") + object.getInt("rEasy") + object.getInt("rHelpful");
-			rating = Math.round(rating/3);
-			JsonObject result = Json.createObjectBuilder()
-					.add("id", object.get("_id"))
-					.add("rating", rating)
-					.add("entity_id", object.get("tid"))
-					.add("rank", 1)
-					.add("date", object.get("rDate"))
-					.add("text", object.get("rComments"))
-					.add("terms", features).build();
-				
+			
+			object = jsonObjectToBuilder(object).add("terms", features).build();
+			
 			try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(this.output, true)))) {
-				
-				out.println(result.toString());
+				out.println(object.toString());
 				//System.out.println(result.toString());
 				//printJson(result);
 			} catch (Exception ex){
@@ -99,7 +93,7 @@ public class FileProcessor {
 			System.out.println(" -> OK " + String.format("%20s", timer.getTime()) + String.format("%20s", timer.getTime()/count) );
 		} catch (Exception ex) {
 			System.err.println(count + "->" + "Error");
-			System.err.println(ex.getMessage());
+			ex.printStackTrace();
 		}
 	}
 	
@@ -112,15 +106,24 @@ public class FileProcessor {
          
 	}
 	
+	private JsonObjectBuilder jsonObjectToBuilder(JsonObject jo) {
+	    JsonObjectBuilder job = Json.createObjectBuilder();
+
+	    for (Entry<String, JsonValue> entry : jo.entrySet()) {
+	        job.add(entry.getKey(), entry.getValue());
+	    }
+	    return job;
+	}
+	
 	public void printJson(JsonArray obj){
 		obj.forEach(o -> printJson((JsonObject)o));
 	}
 	
 	public static void main(String[] args) throws IOException{
 		FileProcessor file = new FileProcessor();
-		file.input("/Users/cristian/Downloads/rateprof.json");
-		file.output("/Users/cristian/Downloads/rateprof_processed.json");
-		file.process(500000, 1500000);
+		file.input("/Volumes/Backup/Datasets/processText/yelp_health_raw.json");
+		file.output("/Volumes/Backup/Datasets/processText/yelp_health.json");
+		file.process(0, 100000);
 	}
 	
 	

@@ -1,111 +1,300 @@
-/**
- *
- * @author Joschi <josua.krause@gmail.com>
- */
+d3.lasso = function() {
 
-jkjs = window.jkjs || {}; // init namespace
+	var	items = null,
+		closePathDistance = 75,
+		closePathSelect = true,
+		isPathClosed = false,
+		hoverSelect = true,
+		points = [],
+		area = null,
+		on = {start:function(){}, draw: function(){}, end: function(){}};
 
-jkjs.Lasso = function(sel) {
-  var that = this;
+	function lasso() {
+		var _this = d3.select(this[0][0]);
+		var g = _this.append("g")
+					.attr("class","lasso");
+		var dyn_path = g.append("path")
+			.attr("class","drawn");
+		var close_path = g.append("path")
+			.attr("class","loop_close");
+		var complete_path = g.append("path")
+			.attr("display","none");
+		var origin_node = g.append("circle")
+			.attr("class","origin");
+		var path;
+		var origin;
+		var last_known_point;
+		var path_length_start;
+		var drag = d3.behavior.drag()
+			.on("dragstart",dragstart)
+			.on("drag",dragmove)
+			.on("dragend",dragend);
+		area.call(drag);
 
-  var objProvider = null;
-  this.objProvider = function(_) {
-    if(!arguments.length) return objProvider;
-    objProvider = _;
-  };
+		function dragstart() {
+			// Reset blank lasso path
+			path="";
+			dyn_path.attr("d",null);
+			close_path.attr("d",null);
+			// Set path length start
+			path_length_start = 0;
+			// Set every item to have a false selection and reset their center point and counters
+			items[0].forEach(function(d) {
+				d.hoverSelected = false;
+				d.loopSelected = false;
+				var cur_box = d.getBBox();
+			  	d.lassoPoint = {
+			  		cx: Math.round(cur_box.x + cur_box.width/2),
+					cy: Math.round(cur_box.y + cur_box.height/2),
+					edges: {top:0,right:0,bottom:0,left:0},
+					close_edges: {left: 0, right: 0}
+			  	};
+			})
 
-  var objInPolygon = pointInPolygon;
-  this.objInPolygon = function(_) {
-    if(!arguments.length) return objInPolygon;
-    objInPolygon = _;
-  };
+			// if hover is on, add hover function
+			if(hoverSelect==true) {
+				items.on("mouseover.lasso",function() {
+					// if hovered, change lasso selection attribute to true
+					d3.select(this)[0][0].hoverSelected = true;
+				})
+			}
 
-  var objToPos = function(obj) {
-    return obj.pos;
-  };
-  this.objToPos = function(_) {
-    if(!arguments.length) return objToPos;
-    objToPos = _;
-  };
+			// Run user defined start function
+			on.start();
+		}
 
-  var updateSel = null;
-  this.updateSel = function(_) {
-    if(!arguments.length) return updateSel;
-    updateSel = _;
-  };
+		function dragmove() {
+			var x = d3.mouse(this)[0]; 
+			var y = d3.mouse(this)[1]; 
+			// Initialize the path or add the latest point to it
+			if (path=="") {
+				path = path + "M " + x + " " + y;
+				origin = [x,y];
+				// Draw origin node
+				origin_node
+					.attr("cx",x)
+					.attr("cy",y)
+					.attr("r",7)
+					.attr("display",null);
+			}
+			else {
+				path = path + " L " + x + " " + y;
+			}
 
-  var onClick = null;
-  this.onClick = function(_) {
-    if(!arguments.length) return onClick;
-    onClick = _;
-  };
+			// Reset closed edges counter
+			items[0].forEach(function(d) {
+				d.lassoPoint.close_edges = {left:0,right:0};
+			});
 
-  function mousePos() {
-    var pos = d3.mouse(sel.node());
-    return [pos[0], pos[1]];
-  }
+			// Calculate the current distance from the lasso origin
+			var distance = Math.sqrt(Math.pow(x-origin[0],2)+Math.pow(y-origin[1],2));
 
-  function dragUpdate() {
-    if(!objProvider) return;
-    var objs = objProvider();
-    var curSel = [];
-    objs.forEach(function(obj) {
-      var objPos = objToPos(obj);
-      if(objInPolygon(objPos, selArr)) {
-        curSel.push(obj);
-      }
-    });
-    return curSel;
-  }
+			// Set the closed path line
+			var close_draw_path = "M " + x + " " + y + " L " + origin[0] + " " + origin[1];
 
-  var selArr = [];
-  var drag = d3.behavior.drag().on("dragstart.lasso", function() {
-    selArr = [];
-    selArr.push(mousePos());
-  }).on("drag.lasso", function() {
-    selArr.push(mousePos());
-    updateSel(dragUpdate(), selArr);
-  }).on("dragend.lasso", function() {
-    var pos = mousePos();
-    selArr.push(pos);
-    var isLasso = true;
-    if(selArr.length == 2) {
-      isLasso = selArr[0][0] != selArr[1][0] || selArr[0][1] != selArr[1][1];
-    }
-    if(isLasso) {
-      updateSel(dragUpdate(), []);
-    } else {
-      onClick && onClick(pos);
-    }
-  });
-  sel.call(drag);
+			// Draw the lines
+			dyn_path.attr("d",path);
 
-  function pointInPolygon(pos, arr) {
-    var px = pos[0];
-    var py = pos[1];
 
-    function crossings(posA, posB) {
-      var x0 = posA[0];
-      var y0 = posA[1];
-      var x1 = posB[0];
-      var y1 = posB[1];
-      if(py <  y0 && py <  y1) return 0;
-      if(py >= y0 && py >= y1) return 0;
-      // (y0 != y1) || console.warn("y0 == y1", posA, posB);
-      if(px >= x0 && px >= x1) return 0;
-      if(px <  x0 && px <  x1) return (y0 < y1) ? 1 : -1;
-      var xintercept = x0 + (py - y0) * (x1 - x0) / (y1 - y0);
-      if (px >= xintercept) return 0;
-      return (y0 < y1) ? 1 : -1;
-    }
+			// If within the closed path distance parameter, show the closed path. otherwise, hide it
+			if(distance<=closePathDistance) {
+				close_path.attr("display",null);
+			}
+			else {
+			  	close_path.attr("display","none");
+			}
 
-    var posA = arr[arr.length - 1];
-    var numCrossings = 0;
-    for(var ix = 0;ix < arr.length;ix += 1) {
-      var posB = arr[ix];
-      numCrossings += crossings(posA, posB);
-      posA = posB;
-    }
-    return numCrossings & 1 != 0;
-  }
-}; // jkjs.Lasso
+			isPathClosed = distance<=closePathDistance ? true : false;
+
+	  		// create complete path
+	  		var complete_path_d = path + "Z";
+	  		complete_path.attr("d",complete_path_d);
+
+			// get path length
+			var path_node = dyn_path.node();
+		  	var path_length_end = path_node.getTotalLength();
+		  	var last_pos = path_node.getPointAtLength(path_length_start-1);
+		  
+		  	for (var i = path_length_start; i<=path_length_end; i++) {
+		  		var cur_pos = path_node.getPointAtLength(i);
+		  		var cur_pos_obj = {
+			  		x:Math.round(cur_pos.x*100)/100,
+			  		y:Math.round(cur_pos.y*100)/100,
+			  	};
+			  	var prior_pos = path_node.getPointAtLength(i-1);
+			  	var prior_pos_obj = {
+			  		x:Math.round(prior_pos.x*100)/100,
+			  		y:Math.round(prior_pos.y*100)/100,
+			  	};
+
+		  		items[0].filter(function(d) {
+		  			var a; 
+		  			if(d.lassoPoint.cy === cur_pos_obj.y && d.lassoPoint.cy != prior_pos_obj.y) { 
+	  					last_known_point = {
+	  						x: prior_pos_obj.x,
+	  						y: prior_pos_obj.y
+	  					};
+	  					a=false; 
+	  				} 
+		  			else if (d.lassoPoint.cy === cur_pos_obj.y && d.lassoPoint.cy === prior_pos_obj.y) {
+	  					a = false;
+	  				} 
+		  			else if (d.lassoPoint.cy === prior_pos_obj.y && d.lassoPoint.cy != cur_pos_obj.y) {
+		  				a = sign(d.lassoPoint.cy-cur_pos_obj.y)!=sign(d.lassoPoint.cy-last_known_point.y);
+		  			}
+		  			else {
+		  				last_known_point = {
+	  						x: prior_pos_obj.x,
+	  						y: prior_pos_obj.y
+	  					};
+		  				a = sign(d.lassoPoint.cy-cur_pos_obj.y)!=sign(d.lassoPoint.cy-prior_pos_obj.y);
+		  			} 
+		  			return a;
+		  		}).forEach(function(d) {
+		  			if(cur_pos_obj.x>d.lassoPoint.cx) {
+			  			d.lassoPoint.edges.right = d.lassoPoint.edges.right+1;
+			  		}
+			  		if(cur_pos_obj.x<d.lassoPoint.cx) {
+			  			d.lassoPoint.edges.left = d.lassoPoint.edges.left+1;
+			  		}
+		  		});
+		  	}
+
+
+			 if(isPathClosed == true && closePathSelect == true) {
+			 	close_path.attr("d",close_draw_path);
+			  	close_path_node =close_path.node();
+			  	var close_path_length = close_path_node.getTotalLength();
+			  	var close_path_edges = {left:0,right:0};
+			  	for (var i = 0; i<=close_path_length; i++) {
+			  		var cur_pos = close_path_node.getPointAtLength(i);
+			  		var prior_pos = close_path_node.getPointAtLength(i-1);
+
+			  		items[0].filter(function(d) {return d.lassoPoint.cy==Math.round(cur_pos.y)}).forEach(function(d) {
+				  		if(Math.round(cur_pos.y)!=Math.round(prior_pos.y) && Math.round(cur_pos.x)>d.lassoPoint.cx) {
+				  			d.lassoPoint.close_edges.right = 1;
+				  		}
+				  		if(Math.round(cur_pos.y)!=Math.round(prior_pos.y) && Math.round(cur_pos.x)<d.lassoPoint.cx) {
+				  			d.lassoPoint.close_edges.left = 1;
+				  		}
+				  	});
+
+			  	}
+
+			  	items[0].forEach(function(a) {
+	  				if((a.lassoPoint.edges.left+a.lassoPoint.close_edges.left)>0 && (a.lassoPoint.edges.right + a.lassoPoint.close_edges.right)%2 ==1) {
+	  					a.loopSelected = true;
+	  				}
+	  				else {
+	  					a.loopSelected = false;
+	  				}
+	  			});	
+			}
+			else {
+				items[0].forEach(function(d) {
+					d.loopSelected = false;
+				})
+			}
+			
+			// Tag possible items
+			d3.selectAll(items[0].filter(function(d) {return (d.loopSelected && isPathClosed) || d.hoverSelected}))
+				.attr("d",function(d) {return d.possible = true;});
+
+			d3.selectAll(items[0].filter(function(d) {return !((d.loopSelected && isPathClosed) || d.hoverSelected)}))
+				.attr("d",function(d) {return d.possible = false;});
+
+			on.draw();
+
+			// Continue drawing path from where it left off
+			path_length_start = path_length_end+1;
+		}
+
+		function dragend() {
+			// Remove mouseover tagging function
+			items.on("mouseover.lasso",null);
+
+			// Tag selected items
+			items.filter(function(d) {return d.possible === true})
+				.attr("d",function(d) {return d.selected = true;});
+
+			items.filter(function(d) {return d.possible === false})
+				.attr("d",function(d) {return d.selected = false;});
+
+			// Reset possible items
+			items.attr("d",function(d) {return d.possible = false});
+
+			// Clear lasso
+			dyn_path.attr("d",null);
+			close_path.attr("d",null);
+			origin_node.attr("display","none");
+
+			// Run user defined end function
+			on.end();	
+	  		
+		}
+	}
+
+	lasso.items  = function(_) {
+
+		if (!arguments.length) return items;
+    	items = _;
+    	items[0].forEach(function(d) {
+    		var item = d3.select(d);
+    		if(typeof item.datum() === 'undefined') {
+    			item.datum({possible:false,selected:false});
+    		}
+    		else {
+    			item.attr("d",function(e) {e.possible = false; e.selected = false; return e;});
+    		}
+    	})
+    	return lasso;
+	};
+
+	lasso.closePathDistance  = function(_) {
+		if (!arguments.length) return closePathDistance;
+    	closePathDistance = _;
+    	return lasso;
+	};
+
+	lasso.closePathSelect = function(_) {
+		if (!arguments.length) return closePathSelect;
+    	closePathSelect = _==true ? true : false;
+    	return lasso;
+	};
+
+	lasso.isPathClosed = function(_) {
+		if (!arguments.length) return isPathClosed;
+    	isPathClosed = _==true ? true : false;
+    	return lasso;
+	};
+
+	lasso.hoverSelect = function(_) {
+		if (!arguments.length) return hoverSelect;
+    	hoverSelect = _==true ? true : false;
+    	return lasso;
+	};
+
+	lasso.on = function(type,_) {
+		if(!arguments.length) return on;
+		if(arguments.length===1) return on[type];
+		var types = ["start","draw","end"];
+		if(types.indexOf(type)>-1) {
+			on[type] = _;
+		};
+		return lasso;
+	}
+
+	lasso.area = function(_) {
+		if(!arguments.length) return area;
+		area=_;
+		return lasso;
+	}
+
+	function sign(x) {
+		return x?x<0?-1:1:0;
+	}
+
+
+	return lasso;
+
+};

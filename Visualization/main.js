@@ -10,6 +10,8 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             $scope.gov = "nn";
             $scope.dep = "jj";
             $scope.inter = true;
+            $scope.termFilter = "";
+            $scope.load();
         }
      
         //Public----------------------------------
@@ -67,7 +69,7 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
         
         $scope.classes = function(fixed,d) {
             
-            if(d._similar){
+            if(d._similar && d._similar > -1){
                 fixed += " similar" + d._similar;
           
             if(d._selected)
@@ -177,9 +179,8 @@ function Scatter(selector){
             .on("click", backClick)
         dom.body = dom.svg.append("g").attr("class","vizBody");
         
-        dom.board = dom.body.append("g").call(zoom);
-        
         self.setBounds();
+        
         //Build x Axis
         dom.xAxis = dom.body.append("g")
             .attr("class", "x axis")
@@ -202,14 +203,26 @@ function Scatter(selector){
             .style("text-anchor", "end")
             .text("y"); 
         
-        
-        dom.board.append("rect")
+        dom.board = dom.body.append("g").call(zoom);
+        var area = dom.board.append("rect")
             .attr("width", innerWidth)
             .attr("height", innerHeight);
-
+        
+       
         
         built = true;
     }
+    function doSelect(selection) { // performs the actual selection
+        cs.style({
+            "fill": "white"
+        });
+        selection.forEach(function(c) {
+            c.sel.style({
+                "fill": "cornflowerblue"
+            });
+        });
+    }
+    
     function setDomains(data){
         x.scale.domain([d3.min(data, x.value), d3.max(data, x.value)]);
         y.scale.domain([d3.min(data, y.value), d3.max(data, y.value)]);
@@ -245,8 +258,10 @@ function Scatter(selector){
         dom.xAxis.call(x.axis);
         dom.yAxis.call(y.axis);
         dom.dotSet.attr("cx", x.map).attr("cy", y.map)
+        
                 
     }
+
     
     
     
@@ -286,6 +301,7 @@ function Scatter(selector){
             delay = 0;
         }
         
+        
         dom.dotSet = dom.board.selectAll(".dot").data(data, function(d) { return d.key});
         dom.dotSet
             .enter()
@@ -310,11 +326,12 @@ function Scatter(selector){
         
         dom.xAxis.transition().duration(delay).call(x.axis);
         dom.yAxis.transition().duration(delay).call(y.axis);
+        
     }
     self.setData = function(newData){
         if(!built)
             init();
-        data = newData;//.slice(0);
+        data = newData.slice(0);
         setDomains(data);
 
     }

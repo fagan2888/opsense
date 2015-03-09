@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytic Tool</title>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+</head>
+<body ng-app="VizApp">
+    <div id="container" ng-controller="MainController" ng-init="init()">
+       <div id="TopBar">
+           <h1>OpSense</h1>
+           <ul>
+                <li>
+                   <label>Dataset: </label>
+                   <select>
+                       <option value="yelp">Yelp</option>
+                       <option value="yelp">rateMyProfessor</option>
+                   </select>
+                </li>
+                <li>
+                   <label>Pattern: </label>
+                   <input ng-model="pattern" type="text">
+                </li>
+                <li>
+                   <label>Filter: </label>
+                   <input type="text">
+                </li>
+                <li>
+                   <label>Min: </label>
+                   <input type="number">
+                </li>
+                <li>
+                   <button ng-click="load()">Load</button>
+                </li>
+               
+           </ul>
+       </div>
+       <div id="FieldSelection">
+           <ul>
+               <li><h2>x Axis</h2></li>
+               <li>
+                   <label>Field</label><select><option>rating</option></select>
+               </li>
+               <li>
+                   <label>Metric</label><select><option>rating</option></select>
+               </li>
+           </ul>
+           <ul>
+               <li><h2>y Axis</h2></li>
+               <li>
+                   <label>Field</label><select><option>rating</option></select>
+               </li>
+               <li>
+                   <label>Metric</label><select><option>rating</option></select>
+               </li>
+           </ul>
+       </div>
+       <div id="TermsList">
+           <h2>Terms</h2>
+            <ul class="selectedList" ng-show="getSelected().length > 0">
+                <li ng-repeat="i in getSelected()">
+                   <span class="similar1">{{ i.key.split(" ")[0]}}</span>
+                   <span class="similar2">{{ i.key.split(" ")[1]}}</span>
+                </li>
+                <li class="actions">
+                    <button enabled=false>Group</button>
+                    <button class="btn-second">Remove</button>
+                </li>
+            </ul>
+            <ul>
+               <li style="border-bottom: solid 1px #eee; padding-bottom:5px;"><input ng-model="termFilter" type="search" placeholder="search" style="width:90px" /> <button>+</button> </li>
+                <li ng-repeat="i in data | filter: {key: termFilter}" ng-click="select(i, $event)" ng-class="classes('',i)" ng-mouseover="highlight(i)" ng-mouseleave="unhighlight(i)">{{i.key}}</li>
+            </ul>
+       </div>
+       <div class="mainVizualization" id="vizContainer"></div>
+    </div>
+    <script src="vendors/d3/d3.js"></script>
+    <script src="vendors/angular/angular.js"></script>
+    <script src="vendors/elasticsearch/elasticsearch.angular.js"></script>
+    <script src="vendors/lasso.js"></script>
+    <script src="services.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

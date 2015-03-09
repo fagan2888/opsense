@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 
 import javax.json.Json;
 import javax.json.JsonArray;
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
@@ -25,7 +24,6 @@ import javax.json.stream.JsonGenerator;
 
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.jackson.core.JsonFactory;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 import java.text.SimpleDateFormat;
@@ -71,6 +69,7 @@ public class Import {
 	}
 	
 	public void go(){
+		@SuppressWarnings("resource")
 		Client client = new TransportClient()
     		.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
 		Integer[] count = new Integer[1];
