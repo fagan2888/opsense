@@ -181,10 +181,10 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             })
         }
         $scope.loadMeta = function(){
-            $scope.fields = [];
+            
             db.mapping($scope.index).then(function(result){
                 result = result[$scope.index].mappings.documents.properties;
-
+                $scope.fields = [];
                 for(f in result.author.properties){
                     if(result.author.properties[f].type == "long" ||  result.author.properties[f].type == "double")
                         $scope.fields.push({value: "author."+f, text: f, type: "Author"});

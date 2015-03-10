@@ -9,15 +9,12 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
-import javax.json.JsonValue;
 import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
@@ -34,11 +31,18 @@ public class Import {
 	public String source;
 	public String index;
 	public String type;
+	public int skip;
+	public int limit;
 	
 	public static void main (String[] args){
 		Import imp = new Import();
-		imp.source = "/Volumes/Backup/Datasets/processText/zocDoc.json";
-		imp.index = "zocdoc";
+		if(args.length < 4){
+			System.out.println("params: source index skip limit");
+		}
+		imp.source = args[0];
+		imp.index = args[1];
+		imp.skip = Integer.parseInt(args[2]);
+		imp.skip = Integer.parseInt(args[2]);
 		imp.type = "documents";
 		imp.go();
 	}
@@ -57,72 +61,25 @@ public class Import {
 		return dof.format(dateD);
 	}
 	
-	public JsonObjectBuilder getBuilder(JsonObject jo){
-		
-	    JsonObjectBuilder job = Json.createObjectBuilder();
-
-	    for (Entry<String, JsonValue> entry : jo.entrySet()) {
-	        job.add(entry.getKey(), entry.getValue());
-	    }
-
-	    return job;
-	}
-	
-	public JsonObjectBuilder rename(JsonObject jo, Map<String, String> map){
-		JsonObjectBuilder job = Json.createObjectBuilder();
-
-	    for (Entry<String, JsonValue> entry : jo.entrySet()) {
-	    	if(map.containsKey(entry.getKey()))
-	    		job.add(map.get(entry.getKey()), entry.getValue());
-	    	else
-	    		job.add(entry.getKey(), entry.getValue());
-	    }
-
-	    return job;
-	}
-	
 	public void go(){
 		@SuppressWarnings("resource")
 		Client client = new TransportClient()
     		.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		
 		Integer[] count = new Integer[1];
 		count[0] = 0;
 		Path path = Paths.get(this.source); 
 		
 		try (Stream<String> lines = Files.lines(path, Charset.defaultCharset())) {
-			  lines.skip(0).limit(100000).forEach(line -> {
+			  lines.skip(this.skip).limit(this.limit).forEach(line -> {
 				  
 			  	JsonReader jsonReader = Json.createReader(new StringReader(line));
 				JsonObject object = jsonReader.readObject();
 				jsonReader.close();
 				
-				//String date = fixDate(object.getString("date"));
-				JsonObject entity = rename((JsonObject)object.get("entity"), new HashMap<String,String>() {{
-			 		put("LongProfessionalName", "name");
-				}}).build();
-				
-				JsonObject author = rename((JsonObject)object.get("author"), new HashMap<String,String>() {{
-			 		put("Name", "name");
-				}}).add("docCount",0).build();
-				
-				JsonObject document = rename((JsonObject)object.get("document"), new HashMap<String,String>() {{
-			 		put("Text", "text");
-				}}).build();
-				
-				
-	
-				
-				object = getBuilder(object)
-					.add("entity", entity)
-					.add("author", author)
-					.add("document", document)
-					.build();
-				
-				
 				count[0]++;
 				
 				System.out.println(count[0]);
-				//printJson(object);
 				
 				client.prepareIndex(this.index, this.type)
 					.setSource(object.toString())
