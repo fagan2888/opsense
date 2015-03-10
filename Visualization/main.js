@@ -20,6 +20,10 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
         $scope.$watch('index', function(newValue, oldValue) {
             $scope.reloadAll();  
         });
+    
+        $scope.getHiglited = function(){
+            return $scope.data.filter(function (d) { return d._highlight})[0];
+        }
         
         //Public----------------------------------
         $scope.highlight = function(i){ i._highlight = true; $scope.refresh();}
@@ -158,7 +162,8 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
                     var end = wEnd.ed;
                         
                         
-                    
+                    if(start-50 < 0)
+                        start = 0;
                     text = r.document.text.substr(start,100);
                     
                     

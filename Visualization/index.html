@@ -107,7 +107,9 @@
                 <li ng-repeat="i in data | filter: {key: termFilter}" ng-click="select(i, $event)" ng-class="classes('',i)" ng-mouseover="highlight(i)" ng-mouseleave="unhighlight(i)">{{i.key}}</li>
             </ul>
        </div>
-       <div class="mainVizualization" id="vizContainer"></div>
+       <div class="mainVizualization" id="vizContainer">
+           <h1>&nbsp; <span ng-show="getHiglited().key">{{getHiglited().key}} (x: {{getHiglited().x | number:1}} | y: {{getHiglited().y | number:1}} | count: {{getHiglited().review_count | number:1}} )</span></h1>
+       </div>
        <div id="snippetList">
            <ul>
                <li ng-repeat="r in reviews"><span class="entity">@{{r.entity}}</span> - {{r.text}} <br />x: {{getValue(r, 'x')}}, y: {{getValue(r, 'y')}}</li>
