@@ -1,0 +1,318 @@
+/* Variables */
+/*Colors*/
+@blue: #0BBAF4;
+@orange: #FE7328;
+@lighGray: #A1A1A1;
+@darkGray: #000;
+@shadow: #eee;
+
+@similar1: #7ACC5A;
+@similar2: #FFC539 ;
+@highlight: #0BBAF4;
+@selected: #FE7328;
+
+
+/*Sizes*/
+@FieldSelectionWidth: 120px;
+@TermsWidth: 135px;
+@TopBarHeight: 35px;
+@SnippetsWitdth: 200px;
+
+/* Defaults */
+html {
+    body{
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        margin: 0px;
+        color: @darkGray;
+    }
+
+    input{
+        border-radius: 10px;
+        border: solid 1px @shadow;
+    }
+    
+    
+     input[type=text],input[type=number],input[type=search], textarea {
+      transition: all 0.30s ease-in-out;
+      outline: none;
+      padding: 3px 8px 3px 8px;
+    }
+
+    input[type=text]:focus,input[type=number]:focus,input[type=search]:focus, textarea:focus {
+      box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+      padding: 3px 8px 3px 8px;
+      border: 1px solid rgba(81, 203, 238, 1);
+    }
+
+    button{
+        outline: none;
+        color: white;
+        background-color: @blue;
+        border: none;
+        border-radius: 10px;   
+        padding: 2px 10px 3px 10px; 
+        height: 20px;
+        cursor: pointer;
+    }
+    button:focus{
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+    }
+    button.btn-second{
+       background-color: @orange; 
+    }
+    
+    select{
+        outline: none;
+        color: @darkGray;
+        background-color: white;
+        border: solid 1px @shadow;
+        border-radius: 10px;
+        height: 20px;
+    }
+    h2{
+        font-size: 14px;
+        margin: 0px;
+        padding: 0px;
+        margin-top: 20px;
+        margin-bottom: 5px;
+        border-bottom: solid 1px @shadow;
+    }
+}
+svg{
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    .dot{
+        opacity: 0.5;
+        fill: #a2a2a2;
+        cursor: pointer;
+    }
+    
+    rect {
+      fill: #fefefe;
+        opacity: 0;
+    }
+    .inSelection{
+        fill: #ddd;
+        opacity: 0.5;
+    }
+    
+    .similar1 {
+         fill: @similar1;
+    }
+    .similar2 {
+         fill: @similar2;
+    }
+    .selected{
+        fill: @selected;
+        stroke: black;
+        stroke-width: 1px;
+        opacity: 1;
+    }
+    .highlight{
+        fill: @highlight;
+        background-color: @highlight;
+        opacity: 1;
+    }
+    .axis path,
+        .axis line {
+          fill: none;
+          stroke: #ccc;
+            stroke-width:1px;
+          shape-rendering: crispEdges;
+
+        }
+    .axis{
+        font-size: 10px;
+    }
+    .tick line{
+        stroke:@shadow;
+    }
+    .tick text{
+        fill:#aaa;
+    }
+    .domain{
+        stroke:@shadow;
+    }
+    
+}
+#container{
+    span.similar1{
+        color: @similar1;
+        font-size: 12px;
+    }
+    span.similar2{
+        color: @similar2;
+        font-size: 12px;
+    }
+}
+#TopBar {
+    padding: 5px;
+    box-shadow: 1px 1px 1px @shadow;
+    height: @TopBarHeight;
+    overflow: auto;
+    white-space: nowrap;
+    position: fixed;
+    left: 0px;
+    top:0px;
+    right: 0px;
+    background-color: white;
+    z-index: 1005;
+    h1{
+        color: @blue;
+        margin: 0px;
+        padding: 0px;
+        padding-left:5px; 
+        display: inline-block;
+        height: 35px;
+        margin-right: 20px;
+        font-weight: 300;
+        vertical-align: middle;
+    }
+    ul{
+        padding-left: 0px;
+        margin: 0px;
+        list-style: none;
+        display: inline-block;
+        li{
+            margin: 0px;
+            padding-right: 12px;
+            padding-left: 10px;
+            display: inline-block;
+            height: 20px;
+            vertical-align: middle;
+      
+            border-left: solid 1px @shadow;
+            
+            label{
+                vertical-align: middle;
+            }
+        }
+    }
+}
+#FieldSelection{
+    position: fixed;
+    width: @FieldSelectionWidth;
+    padding-left: 10px;
+    top: @TopBarHeight;
+    ul{
+        padding-left: 0px;
+        margin: 0px;
+        
+        li{
+            list-style: none;
+        }
+        label{
+            display: block;
+        }
+    }
+}
+#TermsList{
+    position: fixed;
+    left: @FieldSelectionWidth+22;
+    bottom: 0px;
+    top: @TopBarHeight;
+    width: @TermsWidth;
+    overflow: auto;
+    ul{
+        padding-left: 0px;
+        margin: 0px;
+        font-size: 10px;
+        
+        li{
+            cursor: pointer;
+            list-style: none;
+            user-select: none;
+            padding-left: 5px;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+            li.similar1 {
+                 background-color: @similar1;
+            }
+            
+        }
+        li.similar1 {
+             background-color: @similar1;
+            color: white;
+        }
+        li.similar2 {
+             background-color:  @similar2;
+            color: white;
+        }
+        li.selected{
+            background-color:  @selected;
+            color: white;
+        }
+        li.highlight{
+            background-color:  @highlight;
+            color: white;
+        }
+
+        
+    }
+    .selectedList{
+        font-size: 12px;
+        margin-bottom: 10px;
+        .actions{
+            border-bottom: solid 1px @shadow;
+            margin-top: 5px;
+            padding-bottom: 5px;
+        }
+    }
+}
+#vizContainer{
+    margin-left: @FieldSelectionWidth+@TermsWidth+30;
+    padding-top: @TopBarHeight+20;
+    margin-right: @SnippetsWitdth;
+}
+#snippetList{
+    position: fixed;
+    right: 0;
+    bottom: 0px;
+    top: @TopBarHeight+10;
+    width: @SnippetsWitdth;
+    overflow: auto;
+    ul{
+        padding-left: 0px;
+        margin: 0px;
+        font-size: 12px;
+        
+        li{
+            margin-top: 5px;
+            border-bottom: solid 1px #ccc;
+        }
+        .entity{
+            color: @blue;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

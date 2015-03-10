@@ -1,0 +1,120 @@
+/* Variables */
+@sideBarSize: 150px;
+@wordsSize: 100px;
+
+@highlight: #0BBAF4;
+@selected: #FE7328 ;
+
+/* Defaults */
+body{
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+}
+
+/* Forms */
+.formList {
+    list-style: none;
+    padding-left: 0;
+    width: @sideBarSize;
+    float: left;
+    position: fixed;
+    
+    li label{
+        display: block;
+        margin-top: 5px;
+    }
+}
+
+/*Visualization */
+.mainVizualization {
+    margin-left: @sideBarSize + @wordsSize;    
+}
+
+
+.vizWords{
+    float: left;
+    list-style: none;
+    padding-left: 0;
+    font-size: 10px;
+    cursor: pointer;
+    
+    width: @wordsSize;
+    position: fixed;
+    left: @sideBarSize;
+    bottom: 0px;
+    top: 0px;
+    overflow: auto;
+        li{
+            padding-left: 5px;
+            user-select: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+        }
+      
+    }
+
+.dot{
+    opacity: 0.5;
+    fill: #a2a2a2;
+}
+.inSelection{
+    fill: #eee;
+    opacity: 1;
+}
+.similar1 {
+     background-color: #FDB100   ;
+     fill: #FDB100;
+    opacity: 0.5;
+}
+span.similar1{
+    color: #FDB100;
+    background-color: transparent;
+    opacity: 1;
+    font-size: 12px;
+}
+.similar2 {
+    background-color: #7ACC5A ;
+    fill: #7ACC5A;
+    opacity: 0.5;
+}
+span.similar2{
+    color: #7ACC5A;
+    background-color: transparent;
+    opacity: 1;
+    font-size: 12px;
+}
+
+.highlight{
+    fill: @highlight;
+    background-color: @highlight;
+    opacity: 1;
+}
+.selected{
+    fill: @selected;
+    background-color: @selected;
+    opacity: 1;
+}
+
+
+
+
+.axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+        stroke-width:1px;
+      shape-rendering: crispEdges;
+        
+    }
+.axis{
+    font-size: 10px;
+}
+.tick line{
+    opacity: 0.1;
+  }
+
+rect {
+  fill: #fefefe;
+}

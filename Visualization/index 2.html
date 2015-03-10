@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytic Tool</title>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+</head>
+<body ng-app="VizApp">
+    <div class="container" ng-controller="MainController" ng-init="init()">
+       <div id="TopBar">
+           <h1>OpSense</h1>
+       </div>
+       <div id="FieldSelection"></div>
+       <div id="TermsList"></div>
+       <div id="Viz"></div>
+       <div id="SnippetList"></div>
+       
+        <ul class="formList">
+            <li><label>Index:</label> 
+               <select ng-model="index">
+                   <option value="yelp">Yelp (Incomplete)</option>
+                    <option value="ratemyprofessor">rateMyProfessor</option>
+                
+            </select></li>
+            <li><label>Gov:</label> <input ng-model="gov" type="text"></li>
+            <li><label>Dep:</label> <input ng-model="dep" type="text"></li>
+            <li><label>Interchengable:</label><input ng-model="inter" type="checkbox"></li> 
+            <li><button ng-click="load()">Go</button></li> 
+            
+            
+        </ul>
+        <ul class="vizWords">
+           <li ng-repeat="i in data | filter: {_selected: true}">
+               <span class="similar1">{{ i.key.split(" ")[0]}}</span>
+               <span class="similar2">{{ i.key.split(" ")[1]}}</span>
+           </li>
+           <li><hr/></li>
+           <li ng-repeat="i in data" ng-click="select(i, $event)" ng-class="classes('',i)" ng-mouseover="highlight(i)" ng-mouseleave="unhighlight(i)">{{i.key}}</li>
+        </ul>
+        <div class="mainVizualization" id="vizContainer"></div>
+    </div>
+    <script src="vendors/d3/d3.js"></script>
+    <script src="vendors/angular/angular.js"></script>
+    <script src="vendors/elasticsearch/elasticsearch.angular.js"></script>
+    <script src="vendors/lasso.js"></script>
+    <script src="services.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

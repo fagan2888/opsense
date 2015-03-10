@@ -1,2 +1,10 @@
 
+<<<<<<< HEAD
+=======
+/bin/
+/target/
+
+.DS_Store
+
+>>>>>>> master
 .DS_Store

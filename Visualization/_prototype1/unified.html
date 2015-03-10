@@ -1,0 +1,122 @@
+<html>
+    <head>
+        
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="css/style.css" />
+           <style>
+            .scScatter{
+                height: 400px;
+                width: 100%;
+            }
+            
+            .scTitle {
+                height: 50px;
+            }
+               .sibling{
+                   fill: black;
+                   background-color: #ddd;
+                   fill-opacity: 0.6 !important;
+               }
+               .qsibling{
+                   fill: #d60000;
+                   background-color: #dec2c2;
+                   fill-opacity: 0.6 !important;
+               }
+               .isSelected{
+                   fill-opacity: 0.2;
+               }
+            .avgLine{
+                stroke-width:1;
+                stroke: red;
+                
+            }
+        </style>
+        
+    </head>
+    <body>
+        <div id="topBar">
+           
+            <div class="form-inline" role="form">
+                <div class="form-group  form-group-sm">
+                   <h1>OpSense</h1>
+              </div>
+              <div class="form-group  form-group-sm">
+                  <label>Feature Set: </label>
+                  <select  class="form-control" onchange="chageDb(this)">
+                        <option value="Discriminative">Most Discriminative</option>
+                        <option value="Frequent">Most Frequent</option>
+                        <option value="Health">Health</option>
+                        <option value="zocdoc">ZocDoc</option>
+                  </select> 
+              </div>
+              <div class="form-group  form-group-sm">
+                  <label>Variable: </label>
+                  <select  class="form-control" onchange="chageVariable(this)">
+                        <option value="W">Weigth Variance</option>
+                        <option value="R">Ratio</option>
+                        <option value="H">Normal Variance</option>
+                        <option value="VH">Participation Variance</option>
+                        <option value="D">Distance</option>
+                        <option value="C">Cosine Distance</option>
+                  </select> 
+              </div>
+             <div class="form-group  form-group-sm">
+                  <label>Min count: </label>
+                  <input type="number" style="width: 100px;" onchange="CountChange(this)" class="form-control" value="5" />
+                  <button class="btn btn-sm btn-error" onclick="clearRescale()">Clear/Rescale</button>
+              </div>
+             
+             <div class="form-group  form-group-sm">
+                 <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <input class="form-control" type="text" id="txtAddFeature" placeholder="add feature" />
+                <button class="btn btn-sm btn-success" onclick="addFeature()"><i class="glyphicon glyphicon-plus"> </i>Add</button>
+            </div>
+            
+            </div>
+       </div>
+        <div id="mainScatter" class="chart" style="height:600px;"></div>
+        
+        <div id="ctrlReviews">
+            <label>By: </label>
+            <select id="slctReview" onchange="changeListType()">
+                <option value="reviews">Reviews</option>
+                <option value="business">Business</option>
+            </select>
+            <label style="margin-left:20px" id="lblSort">Sort: </label>
+            <select id="slctSort" onchange="changeListType()">
+                <option value="vt">Votes</option>
+                <option value="rd">Rating</option>
+            </select>
+        </div>
+        <div id="reviewList"></div>
+        <div class="modal fade" id="modalReviews">
+            
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Modal title</h4>
+              </div>
+              <div class="modal-body">
+                <p>One fine body&hellip;</p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div><!-- /.modal-content -->
+          </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+        <div class="loading" id="mLoading">
+            Loading...
+        </div>
+        <div class="loading" id="rLoading">
+            Loading...
+        </div>
+    </body>
+
+    <script src="https://code.jquery.com/jquery-1.11.2.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/unified.js" charset="utf-8"></script>
+</html>
