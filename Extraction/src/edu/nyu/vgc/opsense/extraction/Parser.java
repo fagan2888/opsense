@@ -152,7 +152,7 @@ public class Parser {
     		lemma = lemma(word.tag(), word.word());
     	word.setLemma(lemma);
     }
-           
+           /*
 	public DirectedGraph<IndexedWord,RelationshipEdge<IndexedWord>> parse(String document) {
 		DocumentPreprocessor tokenizer = new DocumentPreprocessor(new StringReader(document));
 		List<GrammaticalStructure> result = new LinkedList<GrammaticalStructure>();
@@ -174,7 +174,7 @@ public class Parser {
 	    });
 	    return graph;
 	    
-    }
+    }*/
 }
 	
 
