@@ -38,7 +38,6 @@ public class Import {
 		Import imp = new Import();
 		if(args.length < 4){
 			System.out.println("params: source index skip limit");
-			return;
 		}
 		imp.source = args[0];
 		imp.index = args[1];
