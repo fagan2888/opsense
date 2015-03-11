@@ -35,6 +35,7 @@ public class Import {
 	public int limit;
 	
 	public static void main(String [] args){
+		System.out.println("Starting...");
 		Import imp = new Import();
 		if(args.length < 4){
 			System.out.println("params: source index skip limit");
