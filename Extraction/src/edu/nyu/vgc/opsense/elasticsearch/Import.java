@@ -38,11 +38,12 @@ public class Import {
 		Import imp = new Import();
 		if(args.length < 4){
 			System.out.println("params: source index skip limit");
+			return;
 		}
 		imp.source = args[0];
 		imp.index = args[1];
 		imp.skip = Integer.parseInt(args[2]);
-		imp.skip = Integer.parseInt(args[2]);
+		imp.limit = Integer.parseInt(args[3]);
 		imp.type = "documents";
 		imp.go();
 	}
