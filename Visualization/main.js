@@ -7,7 +7,7 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
         $scope.selectedCount = 0;
         $scope.init = function(){
             $scope.reviews = [];
-            $scope.index = "zocodoc";
+            $scope.index = "yelphealth";
             $scope.pattern = "Noun+Adjective";
             $scope.loadMeta();
             
