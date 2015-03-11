@@ -34,7 +34,7 @@ public class Import {
 	public int skip;
 	public int limit;
 	
-	public static void main (String[] args){
+	public static void main(String [] args){
 		Import imp = new Import();
 		if(args.length < 4){
 			System.out.println("params: source index skip limit");
@@ -45,6 +45,12 @@ public class Import {
 		imp.skip = Integer.parseInt(args[2]);
 		imp.limit = Integer.parseInt(args[3]);
 		imp.type = "documents";
+		System.out.println("Runing for: ");
+		System.out.println(" " + imp.source);
+		System.out.println(" " + imp.index);
+		System.out.println(" " + imp.skip);
+		System.out.println(" " + imp.limit);
+		System.out.println(" " + imp.type);
 		imp.go();
 	}
 	
