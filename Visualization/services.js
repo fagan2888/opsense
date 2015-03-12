@@ -102,11 +102,20 @@ vizServices.factory('db', function(client) {
         {
             keys.forEach(function(k){
                 var words = k.key.split(" ");
-                var fil = {
-                    "or" : [
-                        {"and": [{"term" : {"terms.g.lm" : words[0]}},{"term" : {"terms.d.lm" : words[1]}}]},
-                        {"and": [{"term" : {"terms.d.lm" : words[0]}},{"term" : {"terms.g.lm" : words[1]}}]}
-                    ]
+                if(words.length > 1){
+                    var fil = {
+                        "or" : [
+                            {"and": [{"term" : {"terms.g.lm" : words[0]}},{"term" : {"terms.d.lm" : words[1]}}]},
+                            {"and": [{"term" : {"terms.d.lm" : words[0]}},{"term" : {"terms.g.lm" : words[1]}}]}
+                        ]
+                    }
+                } else {
+                    var fil = {
+                        "or" : [
+                            {"and": [{"term" : {"terms.g.lm" : words[0]}}]},
+                            {"and": [{"term" : {"terms.d.lm" : words[0]}}]}
+                        ]
+                    }
                 }
                 filters.push(fil);
             })

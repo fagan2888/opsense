@@ -15,7 +15,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             $scope.starters = {
                 yelphealth: "stars",
                 zocodoc: "Overall",
-                myworld: "age",
+                myworld: "priorities",
             }
             $scope.loadMeta(function (result){
                 $scope.load();
@@ -156,10 +156,25 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             .then(function(result){
                 result.hits.hits.forEach(function(r){
                     r = r._source;
+                    cardinality = 2;
                     var feature = r.terms.filter(function (rl){
                         var candKey1 = rl.g.lm + " " + rl.d.lm;
                         var candKey2 = rl.d.lm + " " + rl.g.lm;
+                        
                         for(i=0;i < selecteds.length; i++){
+                            if(selecteds[i].key.split(" ").length == 1)
+                            {
+                                cardinality = 1;
+                                candKey1 = rl.g.lm;
+                                candKey2 = rl.d.lm;
+                                if(selecteds[i].key == candKey1){
+                                    rl.g.class = "similar1";
+                                    rl.d.class = "similar2";
+                                } else if (selecteds[i].key == candKey2) {
+                                    rl.g.class = "similar2";
+                                    rl.d.class = "similar1";
+                                }
+                            }
                      
                             if(selecteds[i].key == candKey1 || selecteds[i].key == candKey2)
                                 return true;
@@ -172,15 +187,19 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                         f.g.start = f.g.ed - f.g.wd.length;
                         f.d.start = f.d.ed - f.d.wd.length;
                         if(f.d.tg < f.g.tg){
-                            f.d.class = "similar1";
-                            f.g.class = "similar2";
+                            f.d.class = f.d.class ? f.d.class : "similar1";
+                            f.g.class = f.g.class ? f.g.class : "similar2";
                         }
                         else {
-                            f.d.class = "similar2";
-                            f.g.class = "similar1";
+                            f.d.class = f.d.class ? f.d.class : "similar2";
+                            f.g.class = f.g.class ? f.g.class : "similar1";
                         }
-                        words.push(f.g);
-                        words.push(f.d);
+                        
+                        
+                        if(words.filter(function(wk) { return wk.start == f.g.start;}).length == 0)
+                            words.push(f.g);
+                        if(words.filter(function(wk) { return wk.start == f.d.start;}).length == 0)
+                            words.push(f.d);
                     })
                     words.sort(function(a,b){
                         return a.start - b.start;
@@ -240,6 +259,11 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         $scope.loadMeta = function(callback){
             
             db.mapping($scope.index).then(function(result){
+                if(!result[$scope.index]){
+                    alert('Sorry! one problem occurred. The page will be reloaded');
+                    location.reload();
+                }
+                
                 result = result[$scope.index].mappings.documents.properties;
                 $scope.fields = [];
                 $scope.xOperation = {field: "", operation: "avg"};
@@ -326,6 +350,11 @@ function Scatter(selector){
         map: function(d) { return x.scale(x.value(d));},
     }
     x.axis = d3.svg.axis().scale(x.scale).orient("bottom")
+        .innerTickSize(-innerHeight)
+        .outerTickSize(0)
+        .tickPadding(10);
+    
+    x.catSxis = d3.svg.axis().scale(x.scale).orient("bottom")
         .innerTickSize(-innerHeight)
         .outerTickSize(0)
         .tickPadding(10);
@@ -470,8 +499,9 @@ function Scatter(selector){
         axis.axis = d3.svg.axis().scale(x.scale).orient("bottom")
             .innerTickSize(-innerHeight)
             .outerTickSize(0)
-            .tickFormat(function(d) { console.log(d); return "a"; })
+            .tickValues(mainData.x_termsIndex.map( function(d,ix) { console.log('mapping'); return ix; }))
             .tickPadding(10);
+        // TODO 
     }
     
     
@@ -536,6 +566,22 @@ function Scatter(selector){
             .remove();
         
         dom.xAxis.transition().duration(delay).call(x.axis);
+        if(mainData.x_termsIndex){
+            height = 800;
+            margin.bottom= 330;
+            dom.svg
+                .attr("width", width)
+                .attr("height", height);
+            d3.selectAll("g.vizBody>g.x>g.tick>text").each(function() {
+                var sel = d3.select(this);
+                sel.text(mainData.x_termsIndex[+sel.text()]);
+                var w = -10;//-sel.node().getBBox().width + 100;
+                sel.attr({
+                    "transform": "rotate(-90) translate("+w+" -12)",
+                    "style": "text-anchor:end"
+                });
+            });
+        }
         dom.yAxis.transition().duration(delay).call(y.axis);
         if(x.operation){
             dom.xAxisLabel.text(x.operation.operation + "(" + x.operation.field.text + ")" );
@@ -545,6 +591,9 @@ function Scatter(selector){
         }
         
     }
+    
+    
+    
     self.setData = function(newData, xOperation, yOperation){
         if(!built)
             init();
