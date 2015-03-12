@@ -219,18 +219,21 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     if($scope.searchTerm.length >0){
                         for(i =0; i < splited.length; i++){
                             var w = splited[i];
-                            if(w == $scope.searchTerm){
-                                w = '<span class="searchTerm">' + w + "</span>";
-                                splited[i] = w;
-                                if(sniStart == 0)
-                                {
-                                    var total = 0;
-                                    for(j=0; j < i; j++){
-                                        total += splited[j].length;
+                            $scope.searchTerm.split(" ").forEach(function(sh){
+                                if(w == sh){
+                                    
+                                    w = '<span class="searchTerm">' + w + "</span>";
+                                    splited[i] = w;
+                                    if(sniStart == 0)
+                                    {
+                                        var total = 0;
+                                        for(j=0; j < i; j++){
+                                            total += splited[j].length;
+                                        }
+                                        sniStart = total -50 < 0? 0: total -50;
                                     }
-                                    sniStart = total -50 < 0? 0: total -50;
                                 }
-                            }
+                            });
                         }
                     }
                     if(words.length > 0)
