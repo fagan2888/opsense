@@ -21,6 +21,8 @@ vizServices.factory('db', function(client) {
         
         if(pattern.split("+").length > 1){
             query.aggs = {
+                "stats_x":getOperation(x),
+                "stats_y":getOperation(y),
                 "termsList" : {
                     "nested" : {
                         "path" : "terms"
@@ -39,8 +41,8 @@ vizServices.factory('db', function(client) {
                                         "stats":{
                                             "reverse_nested":{},
                                             "aggs":{
-                                                "stats_x":getOperation(x),
-                                                "stats_y":getOperation(y)
+                                                "stats_x":getOperation(x,y),
+                                                "stats_y":getOperation(y,x)
                                             }
                                         }
                                     }
@@ -70,8 +72,8 @@ vizServices.factory('db', function(client) {
                                         "stats":{
                                             "reverse_nested":{},
                                             "aggs":{
-                                                "stats_x":getOperation(x),
-                                                "stats_y":getOperation(y)
+                                                "stats_x":getOperation(x,y),
+                                                "stats_y":getOperation(y,x)
                                             }
                                         }
                                     }
@@ -96,37 +98,53 @@ vizServices.factory('db', function(client) {
     
     self.loadReviews = function(index, filter, keys){
         var filters = [];
-        keys.forEach(function(k){
-            var words = k.key.split(" ");
-            var fil = {
-                "or" : [
-                    {"and": [{"term" : {"terms.g.lm" : words[0]}},{"term" : {"terms.d.lm" : words[1]}}]},
-                    {"and": [{"term" : {"terms.d.lm" : words[0]}},{"term" : {"terms.g.lm" : words[1]}}]}
-                ]
-            }
-            filters.push(fil);
-        })
-        
-        var query =
+        if(keys && keys.length > 0)
         {
-            "query": 
+            keys.forEach(function(k){
+                var words = k.key.split(" ");
+                var fil = {
+                    "or" : [
+                        {"and": [{"term" : {"terms.g.lm" : words[0]}},{"term" : {"terms.d.lm" : words[1]}}]},
+                        {"and": [{"term" : {"terms.d.lm" : words[0]}},{"term" : {"terms.g.lm" : words[1]}}]}
+                    ]
+                }
+                filters.push(fil);
+            })
+        
+            var query =
             {
-                "filtered" : {
-                    
-                    "filter" : {
-                        "nested" : {
-                            "path" : "terms",
-                            "filter" : {
-                                "or" : filters
-                            },
-                            "_cache" : true
+                "query": 
+                {
+                    "filtered" : {
+
+                        "filter" : {
+                            "nested" : {
+                                "path" : "terms",
+                                "filter" : {
+                                    "or" : filters
+                                },
+                                "_cache" : true
+                            }
                         }
                     }
                 }
+            };
+            if(filter && filter.length > 0){
+                query.query.filtered.query = { "term" : { "document.text" : filter }}
             }
-        };
-        if(filter && filter.length > 0){
-            query.query.filtered.query = { "term" : { "document.text" : filter }}
+        } else {
+            var query =
+            {
+                "query": 
+                {
+                    "filtered" : {
+
+                    }
+                }
+            };
+            if(filter && filter.length > 0){
+                query.query.filtered.query = { "term" : { "document.text" : filter }}
+            }
         }
         
         return client.search({
@@ -147,26 +165,38 @@ vizServices.factory('db', function(client) {
         return res;
     }
     
-    function getOperation(op){
+    
+    function getOperation(op, otherOp){
         switch(op.operation){
             case "avg":
             case "min":
             case "max":
             case "sum":
             case "value_count":
-            case "percentiles":
-            case "terms":
-            case "significant_terms":
                 var aggs = {};
                 aggs[op.operation] = { "field" : op.field.value };
                 return aggs;
                 break;
+            
             case "variance":
             case "std_deviation":
                 var aggs = {};
                 aggs["extended_stats"] = { "field" : op.field.value };
                 return aggs;
                 break;
+                
+            case "percentiles":
+            case "terms":
+            case "significant_terms":
+                var aggs = {};
+                aggs[op.operation] = { "field" : op.field.value, "size":20 };
+                if(otherOp){
+                    aggs.aggs = { stats_y : {}};
+                    aggs.aggs.stats_y[otherOp.operation] = { "field" : otherOp.field.value }
+                }
+                return aggs;
+                break;
+            
             case "date_histogram":
             case "histogram":
                 var aggs = {};
@@ -344,29 +374,62 @@ vizServices.factory('db', function(client) {
 vizServices.factory('analytics', function() {
     var self = this;
     
-    self.preProcess = function(raw, xfunc, yfunc){
-        var results = raw.aggregations.termsList.list.terms.buckets;
-        var result = [];
-        results.forEach(function(f){
-                obj = {
-                    key: f.key,
-                    termFreqeuncy: f.doc_count,
-                    review_count: f.stats.doc_count,
-                    x: f.stats.stats_x.value,
-                    y: f.stats.stats_y.value
-                }
-                if(xfunc == 'variance'){
-                    obj.x = f.stats.stats_x[xfunc];
-                }
-            
-                if(yfunc == 'variance'){
-                    obj.y = f.stats.stats_y[yfunc];
-                }
-                
-                result.push(obj);     
-            });
-            return result;
+    self.getValues = function(func, statsField){
+        if(func == 'variance'){
+            return statsField[func];
         }
+        if(func == 'terms'){
+            return statsField["buckets"];
+        }
+        
+        return statsField.value;
+    }
+    
+    
+    
+    self.preProcess = function(raw, xfunc, yfunc){
+        var result = {
+            x: raw.aggregations.stats_x,
+            y: raw.aggregations.stats_y,
+            hits: raw.hits.total,
+            buckets:[]
+        };
+        
+        //Handle terms
+        if(xfunc == 'terms'){
+            raw.aggregations.stats_x.buckets.sort(function(a,b){
+                if(a.key > b.key)
+                    return 1;
+                if(a.key < b.key)
+                    return -1;
+                return 0;
+            })
+            console.log(raw.aggregations.stats_x.buckets);
+            result.x_termsIndex = [];
+            result.x_terms = []; 
+            result.x_terms_number = true;
+            raw.aggregations.stats_x.buckets.forEach(function (item){
+                result.x_terms.push(item);
+                result.x_termsIndex.push(item.key);
+            });
+        }
+        
+        var results = raw.aggregations.termsList.list.terms.buckets;
+        
+        results.forEach(function(f){
+            obj = {
+                key: f.key,
+                termFreqeuncy: f.doc_count,
+                review_count: f.stats.doc_count,
+                x: self.getValues(xfunc, f.stats.stats_x),
+                y: self.getValues(yfunc, f.stats.stats_y)
+            }
+            result.buckets.push(obj);     
+        });
+        console.log(result);
+        return result;
+        
+    }
     return self;
 });
 

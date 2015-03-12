@@ -78,12 +78,12 @@ public class MongoUtil {
         String entityID = "Id";
         String textID = "review_id";
         
-        String[] rmAuthor = {};
+        //String[] rmAuthor = {};
         String[] rmEntity = {"Comment","MainSpecialtyId", "ProviderId", "LocationId", 
         		"Rating", "Address1", "Address2", "Count", "Processed", "ProfId", "_id", "Reviews" };
         String[] rmText = {"Author"};
         
-        String[] countAuthor = {};
+        //String[] countAuthor = {};
         String[] countEntity = {};
         String[] countText = {};
         

@@ -1,6 +1,6 @@
-var VizApp = angular.module('VizApp', ['vizServices']);
+var VizApp = angular.module('VizApp', ['vizServices', 'ui.bootstrap', 'ngSanitize']);
 
-VizApp.controller('MainController', function ($scope, db, analytics) {
+VizApp.controller('MainController', function ($scope, db, analytics, $modal, $log) {
         $scope.data = [];
         $scope.scatter = new Scatter("#vizContainer");
         
@@ -9,13 +9,22 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             $scope.reviews = [];
             $scope.index = "yelphealth";
             $scope.pattern = "Noun+Adjective";
-            $scope.loadMeta();
-            
             $scope.searchTerm = "";
             $scope.inter = true;
             $scope.termFilter = "";
+            $scope.starters = {
+                yelphealth: "stars",
+                zocodoc: "Overall",
+                myworld: "age",
+            }
+            $scope.loadMeta(function (result){
+                $scope.load();
+            })
+           
             //$scope.load();
         }
+        
+       
         
         $scope.$watch('index', function(newValue, oldValue) {
             $scope.reloadAll();  
@@ -23,6 +32,15 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
     
         $scope.getHiglited = function(){
             return $scope.data.filter(function (d) { return d._highlight})[0];
+        }
+        
+        $scope.openReview = function (review) {
+            $scope.showModal = true;
+            $scope.selectedReview = review;
+        }
+        $scope.hideModal = function(){
+            $scope.showModal = false;
+            $scope.selectedReview = undefined;
         }
         
         //Public----------------------------------
@@ -45,12 +63,14 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             $scope.inter = true;
             $scope.termFilter = "";
             $scope.reviews = [];
-            $scope.setData([]);
+            $scope.setData({buckets:[]});
             $scope.refresh();
         }
         
         $scope.remove = function(d){
-            $scope.setData($scope.data.filter(function(item) { return item.key !== d.key}));
+            var newBuckets = $scope.data.filter(function(item) { return item.key !== d.key});
+            $scope.mainData.buckets = newBuckets;
+            $scope.setData($scope.mainData);
             $scope.refresh();
         }
         
@@ -109,8 +129,9 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
         }
         
         $scope.setData = function (newData){
-            $scope.data = newData;
-            $scope.scatter.setData($scope.data);
+            $scope.mainData = newData;
+            $scope.data = newData.buckets;
+            $scope.scatter.setData($scope.mainData, $scope.xOperation, $scope.yOperation);
            
         }
         
@@ -124,8 +145,6 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
                 return review.source[$scope.yOperation.field.type.toLowerCase()][$scope.yOperation.field.text];
             }
             if(axis == 'x'){
-                console.log($scope.yOperation.field.type);
-                console.log(review);
                 return review.source[$scope.xOperation.field.type.toLowerCase()][$scope.xOperation.field.text];
             }
         }
@@ -137,7 +156,6 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             .then(function(result){
                 result.hits.hits.forEach(function(r){
                     r = r._source;
-                    
                     var feature = r.terms.filter(function (rl){
                         var candKey1 = rl.g.lm + " " + rl.d.lm;
                         var candKey2 = rl.d.lm + " " + rl.g.lm;
@@ -148,26 +166,64 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
                         }
                         return false;
                     })
-                   
-                    var text = "";
-                    var wStart;
-                    if(feature[0].g.ed > feature[0].d.ed){
-                        wStart = feature[0].d;
-                        wEnd = feature[0].g;
-                    } else {
-                        wStart = feature[0].g;
-                        wEnd = feature[0].d;
+                    
+                    var words = [];
+                    feature.forEach(function(f){
+                        f.g.start = f.g.ed - f.g.wd.length;
+                        f.d.start = f.d.ed - f.d.wd.length;
+                        if(f.d.tg < f.g.tg){
+                            f.d.class = "similar1";
+                            f.g.class = "similar2";
+                        }
+                        else {
+                            f.d.class = "similar2";
+                            f.g.class = "similar1";
+                        }
+                        words.push(f.g);
+                        words.push(f.d);
+                    })
+                    words.sort(function(a,b){
+                        return a.start - b.start;
+                    })
+                    
+                    var newText = "";
+                    var last = 0;
+                    words.forEach(function(w){
+                        newText += r.document.text.substr(last,w.start-last) + '<span class="' + w.class + '">' + w.wd + "</span>";
+                        last = w.ed;
+                    })
+                    newText +=  r.document.text.substr(last);
+                    
+                    
+                    var splited = newText.split(" ");
+                    var sniStart = 0;
+                    if($scope.searchTerm.length >0){
+                        for(i =0; i < splited.length; i++){
+                            var w = splited[i];
+                            if(w == $scope.searchTerm){
+                                w = '<span class="searchTerm">' + w + "</span>";
+                                splited[i] = w;
+                                if(sniStart == 0)
+                                {
+                                    var total = 0;
+                                    for(j=0; j < i; j++){
+                                        total += splited[j].length;
+                                    }
+                                    sniStart = total -50 < 0? 0: total -50;
+                                }
+                            }
+                        }
                     }
-                    var start = wStart.ed- wStart.wd.length;
-                    var end = wEnd.ed;
-                        
-                        
-                    if(start-50 < 0)
-                        start = 0;
-                    text = r.document.text.substr(start,100);
+                    if(words.length > 0)
+                    {
+                        var sniStart = words[0].start -50 > 0 ?  words[0].start -50 : 0;
+                        var sniEnd = sniStart + 140 < newText.length ?  sniStart+144 : newText.length;
+                    } 
+                    newText = splited.join(" ");
                     
+                    var snippet = newText.substr(sniStart, 200);
                     
-                    var review = { text: text, entity: r.entity.name, source: r};
+                    var review = { text: newText, snippet: snippet,entity: r.entity.name, source: r};
                     $scope.reviews.push(review);
                 })
                 
@@ -177,28 +233,51 @@ VizApp.controller('MainController', function ($scope, db, analytics) {
             db.get2($scope.index, $scope.searchTerm,$scope.pattern,$scope.xOperation , $scope.yOperation).then(function(result){
                 result = analytics.preProcess(result, $scope.xOperation.operation, $scope.yOperation.operation);
                 $scope.setData(result);
+                $scope.loadreviews();
                 $scope.refresh();
             })
         }
-        $scope.loadMeta = function(){
+        $scope.loadMeta = function(callback){
             
             db.mapping($scope.index).then(function(result){
                 result = result[$scope.index].mappings.documents.properties;
                 $scope.fields = [];
+                $scope.xOperation = {field: "", operation: "avg"};
+                $scope.yOperation = {field: "", operation: "variance"};
                 for(f in result.author.properties){
-                    if(result.author.properties[f].type == "long" ||  result.author.properties[f].type == "double")
+                    if(result.author.properties[f].type == "long" ||  result.author.properties[f].type == "double" ){
                         $scope.fields.push({value: "author."+f, text: f, type: "Author"});
+                        if(f == $scope.starters[$scope.index]){
+                            $scope.xOperation.field = doc;
+                            $scope.yOperation.field = doc;
+                        }
+                    }
                 }
                 for(f in result.document.properties){
-                     if(result.document.properties[f].type == "long" ||  result.document.properties[f].type == "double")
-                        $scope.fields.push({value: "document."+f, text: f, type: "Document"});
+                     if(result.document.properties[f].type == "long" ||  result.document.properties[f].type == "double" ||  result.document.properties[f].type == "string"){
+                         doc = {value: "document."+f, text: f, type: "Document"};
+                        $scope.fields.push(doc);
+                        if(f == $scope.starters[$scope.index]){
+                            $scope.xOperation.field = doc;
+                            $scope.yOperation.field = doc;
+                        }
+                     }
                 }
                 for(f in result.entity.properties){
-                     if(result.entity.properties[f].type == "long" ||  result.entity.properties[f].type == "double")
+                     if(result.entity.properties[f].type == "long" ||  result.entity.properties[f].type == "double"){
                         $scope.fields.push({value: "entity."+f, text: f, type: "Entity"});
+                         if(f == $scope.starters[$scope.index]){
+                            $scope.xOperation.field = doc;
+                            $scope.yOperation.field = doc;
+                        }
+                    }
                 }
-                $scope.xOperation = {field: $scope.fields[0], operation: "avg"};
-                $scope.yOperation = {field: $scope.fields[0], operation: "value_count"};
+                //$scope.xOperation = {field: $scope.fields[0], operation: "avg"};
+                //$scope.yOperation = {field: $scope.fields[0], operation: "variance"};
+                
+                if(callback)
+                    callback(result);
+                
 
             });
             
@@ -228,6 +307,7 @@ function Scatter(selector){
     var self = this;
     var built = false;
     var data = [];
+    var mainData = {};
     var dom = {
         element: d3.select(selector)
     }
@@ -240,7 +320,7 @@ function Scatter(selector){
     
     var x = {
         field: "x",
-        desc: "Average",
+        operation: {operation: "", field: ""},
         value: function(d) { return d[x.field];}, 
         scale: d3.scale.linear().range([0, innerWidth]),
         map: function(d) { return x.scale(x.value(d));},
@@ -252,7 +332,7 @@ function Scatter(selector){
 
     var y = {
         field: "y",
-        desc: "Frequency",
+        operation: {operation: "", field: ""},
         value: function(d) { return d[y.field];}, 
         scale: d3.scale.linear().range([innerHeight, 0]),
         map: function(d) { return y.scale(y.value(d));},
@@ -287,23 +367,23 @@ function Scatter(selector){
         dom.xAxis = dom.body.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + innerHeight + ")");
-        dom.xAxis.append("text")
+        dom.xAxisLabel = dom.xAxis.append("text")
             .attr("class", "label")
             .attr("x", innerWidth)
             .attr("y", -6)
             .style("text-anchor", "end")
-            .text("x");
+            .text("");
         
         //Build yAxis
         dom.yAxis = dom.body.append("g")
             .attr("class", "y axis")
-        dom.yAxis.append("text")
+        dom.yAxisLabel = dom.yAxis.append("text")
             .attr("class", "label")
             .attr("transform", "rotate(-90)")
             .attr("y", 6)
             .attr("dy", ".71em")
             .style("text-anchor", "end")
-            .text("y"); 
+            .text(""); 
         
         dom.board = dom.body.append("g").call(zoom);
         var area = dom.board.append("rect")
@@ -325,7 +405,7 @@ function Scatter(selector){
         });
     }
     
-    function setDomains(data){
+    function setDomains(data, xOperation){
         x.scale.domain([d3.min(data, x.value), d3.max(data, x.value)]);
         y.scale.domain([d3.min(data, y.value), d3.max(data, y.value)]);
         s.scale.domain([d3.min(data, s.value), d3.max(data, s.value)]);
@@ -365,6 +445,34 @@ function Scatter(selector){
     }
 
     
+    
+    //Function change Type
+    function changeTo(operation, axis){
+        if(self["to_"+operation])
+            self["to_"+operation] (operation, axis);
+        else
+            axis.value = function(d) {return d[x.field]};
+            axis.scale = d3.scale.linear().range([0, innerWidth]);
+            axis.map = function(d) { return x.scale(x.value(d))};
+            axis.axis = d3.svg.axis().scale(x.scale).orient("bottom")
+                .innerTickSize(-innerHeight)
+                .outerTickSize(0)
+                .tickPadding(10);
+       
+    }
+    
+    self.to_terms = function(operation, axis, axisName){
+        axis.value = function(d) {
+            return mainData.x_termsIndex.indexOf(d.x[0].key);
+        };
+        axis.scale = d3.scale.ordinal().range([0, innerWidth])
+        axis.map = function(d) { return x.scale(x.value(d))};
+        axis.axis = d3.svg.axis().scale(x.scale).orient("bottom")
+            .innerTickSize(-innerHeight)
+            .outerTickSize(0)
+            .tickFormat(function(d) { console.log(d); return "a"; })
+            .tickPadding(10);
+    }
     
     
     //Public----------------------------------------------------------------------------------
@@ -429,14 +537,27 @@ function Scatter(selector){
         
         dom.xAxis.transition().duration(delay).call(x.axis);
         dom.yAxis.transition().duration(delay).call(y.axis);
+        if(x.operation){
+            dom.xAxisLabel.text(x.operation.operation + "(" + x.operation.field.text + ")" );
+        }
+        if(y.operation){
+            dom.yAxisLabel.text(y.operation.operation + "(" + y.operation.field.text + ")" );
+        }
         
     }
-    self.setData = function(newData){
+    self.setData = function(newData, xOperation, yOperation){
         if(!built)
             init();
-        data = newData.slice(0);
-        setDomains(data);
-
+        x.operation = xOperation;
+        y.operation = yOperation;
+        mainData = newData;
+        data = newData.buckets.slice(0);
+        if(x.operation) {
+            changeTo(x.operation.operation, x, 'x');
+            setDomains(data, x.operation.operation);
+        } else {
+            setDomains(data);
+        }
     }
 }
 

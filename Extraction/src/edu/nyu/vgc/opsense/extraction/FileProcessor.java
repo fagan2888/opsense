@@ -40,7 +40,7 @@ public class FileProcessor {
 	public String textField() { return textField; }
 	public void textField(String textField) { this.textField = textField; }
 	
-	private String idField = "review_id";
+	private String idField = "id";
 	public String idField() { return idField; }
 	public void idField(String idField) { this.idField = idField; }
 	
@@ -78,7 +78,7 @@ public class FileProcessor {
 			jsonReader.close();
 			
 			//printJson(object);
-			String text = object.getJsonObject("document").getString("Text");
+			String text = object.getJsonObject("document").getString("text");
 			JsonArray features = txtProc.process(text);
 			
 			object = jsonObjectToBuilder(object).add("terms", features).build();
@@ -86,7 +86,7 @@ public class FileProcessor {
 			try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(this.output, true)))) {
 				out.println(object.toString());
 				//System.out.println(result.toString());
-				//printJson(result);
+				//printJson(object);
 			} catch (Exception ex){
 				
 			}
@@ -121,8 +121,8 @@ public class FileProcessor {
 	
 	public static void main(String[] args) throws IOException{
 		FileProcessor file = new FileProcessor();
-		file.input("/Volumes/Backup/Datasets/processText/zocDoc_raw.json");
-		file.output("/Volumes/Backup/Datasets/processText/zocDoc.json");
+		file.input("/Volumes/Backup/Datasets/processText/MYWorld_votes_all_fixed.json");
+		file.output("/Volumes/Backup/Datasets/processText/MYWorld_votes_all_processed.json");
 		file.process(0, 100000);
 	}
 	
