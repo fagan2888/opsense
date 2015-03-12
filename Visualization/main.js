@@ -446,6 +446,7 @@ function Scatter(selector){
         zoom.y(y.scale);
     }    
     function mouseOver(d){
+        self.plotSiblings(d);
         if(self.onMouseOver)
             self.onMouseOver(d);
     }
@@ -508,6 +509,28 @@ function Scatter(selector){
         // TODO 
     }
     
+    
+    self.plotSiblings = function(word){
+        console.log(word);
+        var delay = 100;
+        dom.siblingSet = dom.board.selectAll(".dotSibling").data(word.x, function(d) {return d.key});
+        dom.siblingSet
+            .enter()
+            .append("circle")
+            .attr("class", "dotSibling")
+            .attr("r", 0)
+          
+        dom.siblingSet.transition().duration(delay).attr("r",s.map)
+                .attr("cx",  x.map)
+                .attr("cy", y.map)
+        
+        dom.dotSet
+            .exit()
+            .transition().duration(delay)
+            .attr("r", 0)
+            .remove();
+        
+    }
     
     //Public----------------------------------------------------------------------------------
     self.setBounds = function(bounds) {

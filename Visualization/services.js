@@ -16,7 +16,7 @@ vizServices.factory('db', function(client) {
         var limit = count | 500;
         var query = {};
         if(filter && filter.length > 0){
-            query.query = { "term" : { "document.text" : filter }}
+            query.query = { "match_phrase" : { "document.text" : filter }}
         }
         
         if(pattern.split("+").length > 1){
@@ -139,7 +139,7 @@ vizServices.factory('db', function(client) {
                 }
             };
             if(filter && filter.length > 0){
-                query.query.filtered.query = { "term" : { "document.text" : filter }}
+                query.query.filtered.query = { "match_phrase" : { "document.text" : filter }}
             }
         } else {
             var query =
@@ -152,7 +152,7 @@ vizServices.factory('db', function(client) {
                 }
             };
             if(filter && filter.length > 0){
-                query.query.filtered.query = { "term" : { "document.text" : filter }}
+                query.query.filtered.query = { "match_phrase" : { "document.text" : filter }}
             }
         }
         
@@ -201,7 +201,7 @@ vizServices.factory('db', function(client) {
                 aggs[op.operation] = { "field" : op.field.value, "size":20 };
                 if(otherOp){
                     aggs.aggs = { stats_y : {}};
-                    aggs.aggs.stats_y[otherOp.operation] = { "field" : otherOp.field.value }
+                    aggs.aggs.stats_y = getOperation(otherOp);
                 }
                 return aggs;
                 break;
