@@ -8,7 +8,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         $scope.init = function(){
             $scope.reviews = [];
             $scope.index = "yelphealth";
-            $scope.pattern = "Noun+Adjective";
+            $scope.pattern = "";
             $scope.searchTerm = "";
             $scope.inter = true;
             $scope.termFilter = "";
@@ -57,7 +57,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         }
         
         $scope.reloadAll = function(){
-            $scope.pattern = "Noun+Adjective";
+            $scope.pattern = "";
             $scope.loadMeta();
             $scope.searchTerm = "";
             $scope.inter = true;
@@ -249,7 +249,11 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             }); 
         }
         $scope.load = function(){
-            db.get2($scope.index, $scope.searchTerm,$scope.pattern,$scope.xOperation , $scope.yOperation).then(function(result){
+            var pattern = $scope.pattern;
+            if(pattern.length == 0){
+                pattern = "Noun|Adjective|Verb+Noun|Adjective|Verb";
+            }
+            db.get2($scope.index, $scope.searchTerm,pattern,$scope.xOperation , $scope.yOperation).then(function(result){
                 result = analytics.preProcess(result, $scope.xOperation.operation, $scope.yOperation.operation);
                 $scope.setData(result);
                 $scope.loadreviews();
