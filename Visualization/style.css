@@ -53,6 +53,9 @@ html select {
   border-radius: 10px;
   height: 20px;
 }
+html h1 {
+  font-size: 24px;
+}
 html h2 {
   font-size: 14px;
   margin: 0px;
@@ -121,10 +124,17 @@ svg .domain {
 #container span.similar1 {
   color: #7acc5a;
   font-size: 12px;
+  font-weight: bold;
 }
 #container span.similar2 {
   color: #ffc539;
   font-size: 12px;
+  font-weight: bold;
+}
+#container span.searchTerm {
+  font-weight: bold;
+  text-decoration: underline;
+  color: #fe7328;
 }
 #TopBar {
   padding: 5px;
@@ -259,4 +269,37 @@ svg .domain {
 }
 #snippetList ul .entity {
   color: #0bbaf4;
+}
+#snippetList ul .reviewInfo {
+  font-size: 10px;
+  white-space: nowrap;
+  color: Gray;
+}
+/*Modal ------- */
+.reviewDisplay {
+  position: fixed;
+  z-index: 50000;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  background-color: rgba(209, 218, 222, 0.6);
+}
+.reviewDisplay .reviewContent {
+  width: 500px;
+  border: solid 1px #ccc;
+  border-radius: 10px;
+  box-shadow: 0 0 20px #AAA;
+  margin: auto;
+  margin-top: 40px;
+  padding: 20px;
+  opacity: 1;
+  background-color: white;
+}
+.reviewDisplay .reviewContent h1 {
+  color: #0bbaf4;
+}
+.reviewDisplay .reviewContent p {
+  max-height: 500px;
+  overflow: auto;
 }

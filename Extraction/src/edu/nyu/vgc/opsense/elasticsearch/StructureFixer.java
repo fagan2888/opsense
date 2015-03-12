@@ -1,20 +1,21 @@
 package edu.nyu.vgc.opsense.elasticsearch;
 
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Stream;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.time.StopWatch;
 
 import com.google.gson.Gson;
@@ -23,7 +24,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSerializer;
-import com.mongodb.DBObject;
 
 public class StructureFixer {
 	public String source;
@@ -34,6 +34,8 @@ public class StructureFixer {
 	Fixer fixer;
 	
 	public boolean testMode = false;
+	public String type = "json";
+	Gson gson = new Gson();
 	
 	public static void main(String args[]) throws ClassNotFoundException, InstantiationException, IllegalAccessException{	
 		if(args.length == 1 && args[0].equals("help")){
@@ -49,10 +51,11 @@ public class StructureFixer {
 				sf.limit = Integer.parseInt(args[4]);
 			}
 		}else{
-			sf.source = "/Volumes/Backup/Datasets/processText/zocDoc.json";
-			sf.fixerName = "ZocDoc";
+			sf.source = "/Volumes/Backup/Datasets/processText/MYWorld_votes_all.csv";
+			sf.fixerName = "MyWorld";
 			sf.skip = 0;
 			sf.limit = Integer.MAX_VALUE;
+			sf.type = sf.extension();
 		}
 		
 		Class<?> clazz = Class.forName("edu.nyu.vgc.opsense.elasticsearch." + sf.fixerName + "Fixer");
@@ -66,49 +69,99 @@ public class StructureFixer {
 		if(this.output == null){
 			String[] parts = this.source.split("\\.");
 			parts[parts.length-2] += "_fixed";
+			parts[parts.length-1] = "json";
 			output = String.join(".", parts);
 		}
 
 		return output;
 	}
 	
+	public String extension(){
+		if(this.output == null){
+			String[] parts = this.source.split("\\.");
+			return parts[parts.length-1].toLowerCase();
+		}
+
+		return output;
+	}
+	
 	public void go(){
+		timer.start();
+		if(type.equals("json"))
+			processJSON();
+		else if(type.equals("csv"))
+			processCSV();
+		timer.stop();
+		
+	}
+	
+	public void processCSV(){
+		FileReader in;
+		try {
+			System.out.println("Starting");
+			in = new FileReader(this.source);
+			Iterable<CSVRecord> records = CSVFormat.EXCEL.withHeader().parse(in);
+			int count = 0;
+			
+			for(CSVRecord record: records){
+				count++;
+				if(count > this.limit){
+					return;
+				}
+				String json = gson.toJson(record.toMap());
+				processJsonLine(json, count);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public String processJsonLine(String line, int lineNumber){
+		fixer.currentLine = lineNumber;
+		return processJsonLine(line);
+	}
+	
+	public String processJsonLine(String line){
+		JsonObject object = gson.fromJson(line, JsonObject.class);
+		String id =	fixer.getId(object);
+		object = fixer.fix(object);
+		writeToFile(object);
+		return id;
+	}
+	
+	public void processJSON(){
 		Integer[] count = new Integer[1];
 		count[0] = 0;
 		Path path = Paths.get(this.source); 
 		long total = getLineCount();
 		long[] totalArr = {total > limit ? limit : total};
 		System.out.println("Wrting to:" + output());
-		Gson gson = new Gson();
-		timer.start();
+
 		try (Stream<String> lines = Files.lines(path, Charset.defaultCharset())) {
 			  lines.skip(this.skip).limit(this.limit).forEach(line -> {
-
-				JsonObject object = gson.fromJson(line, JsonObject.class);
-				String id =	fixer.getId(object);
-				count[0]++;
+			  count[0]++;
+			  String id = processJsonLine(line);
 				printStats(count[0], totalArr[0], id);
-				object = fixer.fix(object);
-				writeToFile(object);
 			  });
 		} catch (Exception ex){
 			ex.printStackTrace();
 			System.err.println("Line: " + count[0] + "\n" + ex.getMessage());
 		}
-		timer.stop();
-		
 	}
 	
 		
 	public void writeToFile(JsonObject object){
-		if(testMode){
-			printJson(object);
-		} else {
-			
-			try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(this.output(), true)))) {
-				out.println(object.toString());
-			} catch (Exception ex){
-				ex.printStackTrace();
+		if(object != null){
+			if(testMode){
+				printJson(object);
+			} else {
+				
+				try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(this.output(), true)))) {
+					out.println(object.toString());
+				} catch (Exception ex){
+					ex.printStackTrace();
+				}
 			}
 		}
 	}

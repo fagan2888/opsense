@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Analytic Tool</title>
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300, bold' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
     <meta name="description" content="" />
@@ -18,24 +18,22 @@
                    <select ng-model="index">
                        <option value="yelphealth">Yelp Health</option>
                         <option value="zocodoc">Zoc Doc</option>
+                        <option value="myworld">My World</option>
                    </select>
                 </li>
                 <li>
                    <label>Pattern: </label>
                    <input ng-model="pattern" type="text">
-                </li>
-                <li>
-                   <label>Filter: </label>
-                   <input type="text" ng-model="searchTerm">
-                </li>
-                <li>
-                   <label>Min: </label>
-                   <input type="number">
+                    &nbsp;&nbsp;
+                   <label>Search: </label>
+                   <input type="search" ng-model="searchTerm">
+                    &nbsp;&nbsp;
+                   <label>Num Reviews: </label>
+                   <label>{{mainData.hits}}</label>
                 </li>
                 <li>
                    <button ng-click="load()">Load</button>
                 </li>
-               
            </ul>
        </div>
        <div id="FieldSelection">
@@ -55,6 +53,7 @@
                         <option value="sum">Sum</option>
                         <option value="value_count">Value Count</option>
                         <option value="variance">Variance</option>
+                        <option value="terms">Categories</option>
                    </select>
                </li>
            </ul>
@@ -73,16 +72,11 @@
                         <option value="max">Max</option>
                         <option value="sum">Sum</option>
                         <option value="value_count">Value Count</option>
-                        <option value="percentiles">Percentiles</option>
-                        <option value="terms">Terms</option>
-                        <option value="significant_terms">Sig. Terms</option>
                         <option value="variance">Variance</option>
-                        <option value="std_deviation">Std. Deviation</option>
-                        <option value="date_histogram">Date Histogram</option>
-                        <option value="histogram">Histogram</option>
                    </select>
                </li>
            </ul>
+           
        </div>
        <div id="TermsList">
            <h2>Terms</h2>
@@ -106,16 +100,46 @@
        </div>
        <div id="snippetList">
            <ul>
-               <li ng-repeat="r in reviews"><span class="entity">@{{r.entity}}</span> - {{r.text}} <br />x: {{getValue(r, 'x')}}, y: {{getValue(r, 'y')}}</li>
+               <li ng-repeat="r in reviews" ng-click="openReview(r)"><span class="entity">@{{r.entity}}</span> - <span ng-bind-html="r.snippet"></span>
+                   <br /> - <span class="reviewInfo">{{xOperation.field.text}}: {{getValue(r, 'x')}}</span><span ng-show="xOperation.field.text != yOperation.field.text" class="reviewInfo">, {{yOperation.field.text}}: {{getValue(r, 'y')}}</span></li>
            </ul>
        </div>
+        <div ng-show="showModal" ng-click="hideModal()" class="reviewDisplay">
+           <div class="reviewContent">
+                <h2>{{selectedReview.entity}}</h1>
+                <p ng-bind-html="selectedReview.text">
+                  
+                </p>
+                <div style="text-align: right"><button>Close</button></div>
+                
+            </div>
+        </div>
     </div>
+    
+   
+    
     <script src="vendors/d3/d3.js"></script>
     <script src="vendors/angular/angular.js"></script>
-    
+    <script src="vendors/angular/angular-sanitize.js"></script>
     <script src="vendors/elasticsearch/elasticsearch.angular.js"></script>
-    <script src="vendors/lasso.js"></script>
+    <script src="vendors/ui-bootstrap.min.js"></script>
     <script src="services.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

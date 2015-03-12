@@ -8,9 +8,24 @@ import java.util.Map;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+
 public abstract class Fixer {
 	public abstract JsonObject fix(JsonObject object);
 	public abstract String getId(JsonObject object);
+	
+	public int currentLine;
+	
+	
+	public static String unquote(String s) {
+
+		 if (s != null
+		   && ((s.startsWith("\"") && s.endsWith("\""))
+		   || (s.startsWith("'") && s.endsWith("'")))) {
+
+		  s = s.substring(1, s.length() - 1);
+		 }
+		 return s;
+		}
 	
 	public JsonObject getBuilder(JsonObject jo){
 	   
@@ -26,6 +41,53 @@ public abstract class Fixer {
 		});
 		return jo;
 		
+	}
+	
+	public JsonObject replace(JsonObject obj, String field, Map<Object, Object> map){
+		Object currValue=null;
+		for(Object j: map.keySet()){
+			currValue = j;
+			break;
+		}
+		Object res = getEqualType(obj, currValue, field);
+		add(obj, field, map.get(res));
+		return obj;
+	}
+	
+	
+	public Object getEqualType(JsonObject obj, Object value, String field){
+		if (value instanceof String) {
+			return obj.get(field).getAsString();
+		} 
+		else if (value instanceof Boolean) {
+			return obj.get(field).getAsBoolean();
+		} 
+		else if (value instanceof Double) {
+			return obj.get(field).getAsDouble();
+		} 
+		else if (value instanceof Float) {
+			return obj.get(field).getAsFloat();
+		}
+		else if (value instanceof Integer) {
+			return obj.get(field).getAsInt();
+		}
+		else if (value instanceof Long) {
+			return obj.get(field).getAsLong();
+		}
+		else if (value instanceof Short) {
+			return obj.get(field).getAsShort();
+		}
+		
+		if (value instanceof Number) {
+			return obj.get(field).getAsNumber();
+		}
+
+		if (value instanceof Character) {
+			return obj.get(field).getAsCharacter();
+		}
+		else {
+			return obj.get(field).toString();
+		} 
 	}
 	
 	public JsonObject add(JsonObject jo, Map<String, Object> map){
@@ -45,7 +107,11 @@ public abstract class Fixer {
 		} else if (value instanceof Boolean) {
 			jo.addProperty(name, (Boolean)value);
 		} else {
-			jo.addProperty(name, value.toString());
+			if(value == null){
+				jo.addProperty(name,new String());
+			}
+			else
+				jo.addProperty(name, value.toString());
 		} 
 		return jo;
 	}
