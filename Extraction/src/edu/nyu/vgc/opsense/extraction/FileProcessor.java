@@ -5,9 +5,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -65,11 +70,10 @@ public class FileProcessor {
 	
 	public void process(int start, int limit) throws IOException{
 		System.out.println(this.input);
-		System.out.println(this.output);
+		System.out.println(this.output());
 		System.out.println(start);
 		System.out.println(limit);
 		
-		return; /*
 		timer = new StopWatch();
 		timer.start();
 		this.start = start;
@@ -83,7 +87,7 @@ public class FileProcessor {
 			System.err.println("Line: " + count + "\n" + ex.getMessage());
 		}
 		timer.stop();
-		*/
+		
 	}
 	
 	public void processLine(String line){

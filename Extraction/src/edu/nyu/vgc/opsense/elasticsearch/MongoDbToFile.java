@@ -1,7 +1,6 @@
 package edu.nyu.vgc.opsense.elasticsearch;
 
 import java.io.BufferedWriter;
-import java.io.Console;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
@@ -14,7 +13,7 @@ import com.mongodb.DBObject;
 public class MongoDbToFile {
 	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		MongoDbToFile export = new MongoDbToFile();
-		export.exporterName = "rateMyProfessor";
+		export.exporterName = "YelpRestaurant";
 		Class<?> clazz = Class.forName("edu.nyu.vgc.opsense.elasticsearch." + export.exporterName + "Exporter");
 		export.e = (MongoExporter)clazz.newInstance();
 		export.go();
@@ -55,6 +54,7 @@ public class MongoDbToFile {
 			.limit(e.documentLimit())
 			.forEach(document -> {
 				DBObject author = null;
+				
 				if(e.authors != null)
 				{
 					DBObject authorFilter = e.authorFilter();
@@ -71,6 +71,7 @@ public class MongoDbToFile {
 	}
 	
 	public void writeToFile(JsonObject object){
+		
 		if(object != null){
 			if(testMode){
 				Utils.printJson(object);
