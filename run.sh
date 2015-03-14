@@ -32,7 +32,7 @@ function usage
 
 function run
 {
-	mvn exec:java -Dexec.mainClass=$nameSpaceBase.$class -Dexec.args=\"$args\"	
+	mvn exec:java -Dexec.mainClass=$nameSpaceBase.$class -Dexec.args= "$args"	
 } 
 
 if [ "$git" = "1" ]; then
