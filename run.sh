@@ -7,7 +7,7 @@ while [ "$1" != "" ]; do
                                 class=$1
                                 ;;
         -a | --args )    		shift
-								args=$1
+								args="$1"
                                 ;;
         -p | --pull )    		git=1
                                 ;;
