@@ -76,6 +76,15 @@ public class Parser {
     	return this.classifier;
 	}
     
+    public Parser(String modelDir){
+    	this.modelsDir = modelDir;
+    	try {
+			classifier = CRFClassifier.getClassifier(classPath);
+		} catch (ClassCastException | ClassNotFoundException | IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
     public Parser(){
     	try {
 			classifier = CRFClassifier.getClassifier(classPath);

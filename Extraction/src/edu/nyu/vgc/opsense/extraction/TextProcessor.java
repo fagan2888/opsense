@@ -15,7 +15,11 @@ import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.trees.TypedDependency;
 
 public class TextProcessor {
-	Parser parser = new Parser();
+	Parser parser;
+	
+	public TextProcessor(String modelsDir){
+		parser = new Parser(modelsDir);
+	}
 	
 	public JsonArray process(String text){
 		JsonArray result = getJSON(parser.selectRelations(text));
