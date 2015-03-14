@@ -42,6 +42,7 @@ public class FileProcessor {
 	}
 	
 	public FileProcessor(String modelsDir){
+		System.out.println("FileProcessor: " + modelsDir);
 		txtProc = new TextProcessor(modelsDir);
 	}
 	

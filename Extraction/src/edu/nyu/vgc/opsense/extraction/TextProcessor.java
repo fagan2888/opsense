@@ -18,6 +18,7 @@ public class TextProcessor {
 	Parser parser;
 	
 	public TextProcessor(String modelsDir){
+		System.out.println("TextProcessor: " + modelsDir);
 		parser = new Parser(modelsDir);
 	}
 	

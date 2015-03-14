@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 public class Parser {
 	
-	private String modelsDir = "";
+	private String modelsDir;
 	private String modelPath = modelsDir + "parser/PTB_Stanford_params.txt.gz";
     private String taggerPath = modelsDir + "tagger/english-left3words-distsim.tagger";
     private String classPath = modelsDir + "classifiers/english.all.3class.distsim.crf.ser.gz";
@@ -74,6 +74,7 @@ public class Parser {
 	}
     
     public Parser(String modelDir){
+    	System.out.println("Parser: " + modelDir);
     	this.modelsDir = modelDir;
     	try {
 			classifier = CRFClassifier.getClassifier(classPath);
