@@ -219,18 +219,21 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     if($scope.searchTerm.length >0){
                         for(i =0; i < splited.length; i++){
                             var w = splited[i];
-                            if(w == $scope.searchTerm){
-                                w = '<span class="searchTerm">' + w + "</span>";
-                                splited[i] = w;
-                                if(sniStart == 0)
-                                {
-                                    var total = 0;
-                                    for(j=0; j < i; j++){
-                                        total += splited[j].length;
+                            $scope.searchTerm.split(" ").forEach(function(sh){
+                                if(w == sh){
+                                    
+                                    w = '<span class="searchTerm">' + w + "</span>";
+                                    splited[i] = w;
+                                    if(sniStart == 0)
+                                    {
+                                        var total = 0;
+                                        for(j=0; j < i; j++){
+                                            total += splited[j].length;
+                                        }
+                                        sniStart = total -50 < 0? 0: total -50;
                                     }
-                                    sniStart = total -50 < 0? 0: total -50;
                                 }
-                            }
+                            });
                         }
                     }
                     if(words.length > 0)
@@ -263,7 +266,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         $scope.loadMeta = function(callback){
             
             db.mapping($scope.index).then(function(result){
-                if(!result[$scope.index]){
+                if(!result){
                     alert('Sorry! one problem occurred. The page will be reloaded');
                     location.reload();
                 }
@@ -273,7 +276,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                 $scope.xOperation = {field: "", operation: "avg"};
                 $scope.yOperation = {field: "", operation: "variance"};
                 for(f in result.author.properties){
-                    if(result.author.properties[f].type == "long" ||  result.author.properties[f].type == "double" ){
+                    if(result.author.properties[f].type == "long" ||  result.author.properties[f].type == "double" ||  result.author.properties[f].type == "string"){
                         $scope.fields.push({value: "author."+f, text: f, type: "Author"});
                         if(f == $scope.starters[$scope.index]){
                             $scope.xOperation.field = doc;
@@ -292,7 +295,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                      }
                 }
                 for(f in result.entity.properties){
-                     if(result.entity.properties[f].type == "long" ||  result.entity.properties[f].type == "double"){
+                     if(result.entity.properties[f].type == "long" ||  result.entity.properties[f].type == "double" ||  result.entity.properties[f].type == "string"){
                         $scope.fields.push({value: "entity."+f, text: f, type: "Entity"});
                          if(f == $scope.starters[$scope.index]){
                             $scope.xOperation.field = doc;
@@ -446,6 +449,7 @@ function Scatter(selector){
         zoom.y(y.scale);
     }    
     function mouseOver(d){
+        self.plotSiblings(d);
         if(self.onMouseOver)
             self.onMouseOver(d);
     }
@@ -508,6 +512,32 @@ function Scatter(selector){
         // TODO 
     }
     
+    
+    self.plotSiblings = function(word){
+        
+        if(mainData.x_termsIndex){
+            console.log(word);
+            console.log("step 0");
+            var delay = 100;
+            dom.siblingSet = dom.board.selectAll(".dotSibling").data(word.x.slice(1), function(d) {return word.key + "_" + d.key});
+            dom.siblingSet
+                .enter()
+                .append("circle")
+                .attr("class", "dotSibling")
+                .attr("r", 0)
+            console.log("step 1");
+            dom.siblingSet.transition().duration(delay).attr("r",4)
+                    .attr("cx", function(d){return x.scale(mainData.x_termsIndex.indexOf(d.key))})
+                    .attr("cy", function(d) { return y.scale(d.stats_y.value);})
+            console.log("step 2");
+            dom.siblingSet
+                .exit()
+                .transition().duration(delay)
+                .attr("r", 0)
+                .remove();
+        }
+        
+    }
     
     //Public----------------------------------------------------------------------------------
     self.setBounds = function(bounds) {

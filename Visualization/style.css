@@ -77,6 +77,10 @@ svg .dot {
   fill: #a2a2a2;
   cursor: pointer;
 }
+svg .dotSibling {
+  fill: black;
+  cursor: pointer;
+}
 svg rect {
   fill: #fefefe;
   opacity: 0;

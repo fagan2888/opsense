@@ -33,8 +33,18 @@ public class FileProcessor {
 	public void input(String input) { this.input = input; }
 	
 	private String output = "";
-	public String output() { return output; }
 	public void output(String output) { this.output = output; }
+	
+	public String output(){
+		if(this.output == null){
+			String[] parts = this.input.split("\\.");
+			parts[parts.length-2] += "_ready";
+			parts[parts.length-1] = "json";
+			output = String.join(".", parts);
+		}
+
+		return output;
+	}
 	
 	private String textField = "text";
 	public String textField() { return textField; }
@@ -54,6 +64,12 @@ public class FileProcessor {
 	
 	
 	public void process(int start, int limit) throws IOException{
+		System.out.println(this.input);
+		System.out.println(this.output);
+		System.out.println(start);
+		System.out.println(limit);
+		
+		return; /*
 		timer = new StopWatch();
 		timer.start();
 		this.start = start;
@@ -67,6 +83,7 @@ public class FileProcessor {
 			System.err.println("Line: " + count + "\n" + ex.getMessage());
 		}
 		timer.stop();
+		*/
 	}
 	
 	public void processLine(String line){
@@ -121,10 +138,13 @@ public class FileProcessor {
 	
 	public static void main(String[] args) throws IOException{
 		FileProcessor file = new FileProcessor();
-		file.input("/Volumes/Backup/Datasets/processText/MYWorld_votes_all_fixed.json");
-		file.output("/Volumes/Backup/Datasets/processText/MYWorld_votes_all_processed.json");
-		file.process(0, 100000);
+		file.input(args[0]);
+		file.process(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
 	}
+	
+
+	
+	
 	
 	
 	
