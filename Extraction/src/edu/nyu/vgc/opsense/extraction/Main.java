@@ -28,7 +28,7 @@ public class Main {
 				"What she said makes sense"
 			};
 		//String tests[] = { "They really have not a good service to me with their delicious food" };
-		Parser p = new Parser();
+		Parser p = new Parser("");
 		
 		StopWatch total = new StopWatch();
 		total.start();

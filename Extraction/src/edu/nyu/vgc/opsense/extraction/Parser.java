@@ -29,7 +29,7 @@ import org.jgrapht.DirectedGraph;
 
 public class Parser {
 	
-	private String modelsDir = "/Users/cristian/Developer/models/nlp/";
+	private String modelsDir = "";
 	private String modelPath = modelsDir + "parser/PTB_Stanford_params.txt.gz";
     private String taggerPath = modelsDir + "tagger/english-left3words-distsim.tagger";
     private String classPath = modelsDir + "classifiers/english.all.3class.distsim.crf.ser.gz";
@@ -76,13 +76,15 @@ public class Parser {
     	return this.classifier;
 	}
     
-    public Parser(){
+    public Parser(String modelDir){
+    	this.modelsDir = modelDir;
     	try {
 			classifier = CRFClassifier.getClassifier(classPath);
 		} catch (ClassCastException | ClassNotFoundException | IOException e) {
 			e.printStackTrace();
 		}
     }
+  
     
     private static final Morphology m = new Morphology(); 
     

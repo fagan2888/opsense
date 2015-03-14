@@ -5,14 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Stream;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -46,6 +41,10 @@ public class FileProcessor {
 		return output;
 	}
 	
+	public FileProcessor(String modelsDir){
+		txtProc = new TextProcessor(modelsDir);
+	}
+	
 	private String textField = "text";
 	public String textField() { return textField; }
 	public void textField(String textField) { this.textField = textField; }
@@ -58,7 +57,7 @@ public class FileProcessor {
 	private int limit;
 	private int count = 0;
 	
-	TextProcessor txtProc = new TextProcessor();
+	TextProcessor txtProc;
 	PrintWriter out ;
 	StopWatch timer;
 	
@@ -137,9 +136,9 @@ public class FileProcessor {
 	}
 	
 	public static void main(String[] args) throws IOException{
-		FileProcessor file = new FileProcessor();
+		FileProcessor file = new FileProcessor(args[1]);
 		file.input(args[0]);
-		file.process(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+		file.process(Integer.parseInt(args[2]), Integer.parseInt(args[3]));
 	}
 	
 
