@@ -32,15 +32,15 @@ function usage
 
 function run
 {
-	mvn exec:java -Dexec.mainClass=$nameSpaceBase.$class -Dexec.args=\"$args\"	
+	echo mvn exec:java -Dexec.mainClass=$nameSpaceBase.$class -Dexec.args=\"$args\"	
 } 
 
 if [ "$git" = "1" ]; then
-	git pull
+	echo git pull
 fi
 cd Extraction
 if [ "$build" = "1" ]; then
-	mvn package
+	echo mvn package
 fi
 
 run
