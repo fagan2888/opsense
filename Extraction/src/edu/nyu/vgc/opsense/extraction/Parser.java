@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 public class Parser {
 	
 	private String modelsDir;
-	private String modelPath = modelsDir + "parser/PTB_Stanford_params.txt.gz";
-    private String taggerPath = modelsDir + "tagger/english-left3words-distsim.tagger";
-    private String classPath = modelsDir + "classifiers/english.all.3class.distsim.crf.ser.gz";
+	private String modelPath;
+    private String taggerPath;
+    private String classPath;
 	
     MaxentTagger tagger;
     DpParser parser;
@@ -77,6 +77,9 @@ public class Parser {
     	System.out.println("Parser: " + modelDir);
     	this.modelsDir = modelDir;
     	try {
+    		modelPath = modelsDir + "parser/PTB_Stanford_params.txt.gz";
+    	    taggerPath = modelsDir + "tagger/english-left3words-distsim.tagger";
+    	    classPath = modelsDir + "classifiers/english.all.3class.distsim.crf.ser.gz";
 			classifier = CRFClassifier.getClassifier(classPath);
 			tagger = new MaxentTagger(taggerPath);
 		    parser = DpParser.loadFromModelFile(modelPath);
