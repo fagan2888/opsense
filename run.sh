@@ -38,9 +38,10 @@ function run
 if [ "$git" = "1" ]; then
 	git pull
 fi
-
+cd Extraction
 if [ "$build" = "1" ]; then
 	mvn package
 fi
 
 run
+cd ..
