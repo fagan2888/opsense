@@ -27,12 +27,12 @@ nameSpaceBase="edu.nyu.vgc.opsense"
 
 function usage
 {
-    echo "usage: -c class -a args --pull"
+    "usage: -c class -a args --pull"
 }
 
 function run
 {
-	echo mvn exec:java -Dexec.mainClass=$nameSpaceBase.$class -Dexec.args=\"$args\"	
+	mvn exec:java -Dexec.mainClass=$nameSpaceBase.$class -Dexec.args=\"$args\"	
 } 
 
 if [ "$git" = "1" ]; then
@@ -40,7 +40,7 @@ if [ "$git" = "1" ]; then
 fi
 cd Extraction
 if [ "$build" = "1" ]; then
-	echo mvn package
+	mvn package
 fi
 
 run
