@@ -32,8 +32,7 @@ public class FileProcessor {
 	public String input() { return input; }
 	public void input(String input) { this.input = input; }
 	
-	private String output = "";
-	public void output(String output) { this.output = output; }
+	private String output = null;
 	
 	public String output(){
 		if(this.output == null){
@@ -145,13 +144,6 @@ public class FileProcessor {
 		file.input(args[0]);
 		file.process(Integer.parseInt(args[2]), Integer.parseInt(args[3]));
 	}
-	
-
-	
-	
-	
-	
-	
 }
 
 
