@@ -1,6 +1,5 @@
 package edu.nyu.vgc.opsense.extraction;
 
-import edu.nyu.vgc.opsense.extraction.GraphBuilder.RelationshipEdge;
 import edu.stanford.nlp.ie.AbstractSequenceClassifier;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
 import edu.stanford.nlp.ling.CoreAnnotations;
@@ -23,8 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.jgrapht.DirectedGraph;
 
 
 public class Parser {
