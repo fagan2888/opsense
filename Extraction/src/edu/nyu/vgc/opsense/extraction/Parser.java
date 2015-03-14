@@ -31,8 +31,8 @@ public class Parser {
     private String taggerPath = modelsDir + "tagger/english-left3words-distsim.tagger";
     private String classPath = modelsDir + "classifiers/english.all.3class.distsim.crf.ser.gz";
 	
-    MaxentTagger tagger = new MaxentTagger(taggerPath);
-    DpParser parser = DpParser.loadFromModelFile(modelPath);
+    MaxentTagger tagger;
+    DpParser parser;
     AbstractSequenceClassifier<CoreLabel> classifier;
     GraphBuilder gBuilder = new GraphBuilder();
     
@@ -78,6 +78,8 @@ public class Parser {
     	this.modelsDir = modelDir;
     	try {
 			classifier = CRFClassifier.getClassifier(classPath);
+			tagger = new MaxentTagger(taggerPath);
+		    parser = DpParser.loadFromModelFile(modelPath);
 		} catch (ClassCastException | ClassNotFoundException | IOException e) {
 			e.printStackTrace();
 		}
