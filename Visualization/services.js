@@ -159,7 +159,7 @@ vizServices.factory('db', function(client) {
         return client.search({
           index: index,
           type: 'documents',
-            size: 100,
+            size: 200,
           body: query
         });
             
@@ -241,6 +241,11 @@ vizServices.factory('db', function(client) {
             case "jj":
             case "adjective":
                 return "JJ"
+                break;
+            case "adv":
+            case "rb":
+            case "adverb":
+                return "RB"
                 break;
           default:
             return value;

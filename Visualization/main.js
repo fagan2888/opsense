@@ -1,3 +1,4 @@
+var debugObject;
 var VizApp = angular.module('VizApp', ['vizServices', 'ui.bootstrap', 'ngSanitize']);
 
 VizApp.controller('MainController', function ($scope, db, analytics, $modal, $log) {
@@ -6,6 +7,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         
         $scope.selectedCount = 0;
         $scope.init = function(){
+            $scope.loading = 0;
             $scope.reviews = [];
             $scope.index = "yelphealth";
             $scope.pattern = "";
@@ -13,20 +15,45 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             $scope.inter = true;
             $scope.termFilter = "";
             $scope.starters = {
-                yelphealth: "stars",
-                zocodoc: "Overall",
-                myworld: "priorities",
+                yelphealth: {
+                    xMetric: "avg",
+                    xField: "document.stars",
+                    yMetric: "variance",
+                    yField: "document.stars"
+                },
+                zocodoc: {
+                    xMetric: "avg",
+                    xField: "document.Overall",
+                    yMetric: "variance",
+                    yField: "document.Overall"
+                },
+
+                myworld: {
+                    xMetric: "terms",
+                    xField: "document.priorities",
+                    yMetric: "value_count",
+                    yField: "document.priorities"
+                },
+                ratemyprofessor: {
+                    xMetric: "avg",
+                    xField: "document.rating_Avg",
+                    yMetric: "variance",
+                    yField: "document.rating_Avg",
+                    pattern: "Noun+Adjective",
+                    searchTerm: "professor"
+                },
+                yelprestaurants: {
+                    xMetric: "avg",
+                    xField: "document.stars",
+                    yMetric: "variance",
+                    pattern: "Noun+Adjective",
+                    yField: "document.stars"
+                }
             }
-            $scope.loadMeta(function (result){
-                $scope.load();
-            })
-           
-            //$scope.load();
         }
-        
-       
-        
+
         $scope.$watch('index', function(newValue, oldValue) {
+            console.log('INdex Changed');
             $scope.reloadAll();  
         });
     
@@ -43,6 +70,13 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             $scope.selectedReview = undefined;
         }
         
+        
+        $scope.updateWindow = function(){
+
+            $scope.scatter.resize();
+        }
+        window.onresize = $scope.updateWindow;
+        
         //Public----------------------------------
         $scope.highlight = function(i){ i._highlight = true; $scope.refresh();}
         $scope.unhighlight = function(i){ i._highlight = false; $scope.refresh();}
@@ -58,17 +92,30 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         
         $scope.reloadAll = function(){
             $scope.pattern = "";
-            $scope.loadMeta();
             $scope.searchTerm = "";
             $scope.inter = true;
             $scope.termFilter = "";
-            $scope.reviews = [];
-            $scope.setData({buckets:[]});
-            $scope.refresh();
+            $scope.loadMeta(function (result){
+                $scope.load();
+            })
         }
         
         $scope.remove = function(d){
             var newBuckets = $scope.data.filter(function(item) { return item.key !== d.key});
+            $scope.mainData.buckets = newBuckets;
+            $scope.setData($scope.mainData);
+            $scope.refresh();
+        }
+        
+        $scope.removeSelected = function(){
+            var newBuckets = $scope.data.filter(function(item) { 
+                var result = true;
+                $scope.getSelected().forEach(function(d){
+                    if(item.key == d.key)
+                        result = false;
+                })
+                return result;
+            });
             $scope.mainData.buckets = newBuckets;
             $scope.setData($scope.mainData);
             $scope.refresh();
@@ -156,15 +203,16 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             .then(function(result){
                 result.hits.hits.forEach(function(r){
                     r = r._source;
-                    cardinality = 2;
+                    
+                    var text = r.document.text;
+                    
                     var feature = r.terms.filter(function (rl){
                         var candKey1 = rl.g.lm + " " + rl.d.lm;
                         var candKey2 = rl.d.lm + " " + rl.g.lm;
-                        
+
                         for(i=0;i < selecteds.length; i++){
                             if(selecteds[i].key.split(" ").length == 1)
                             {
-                                cardinality = 1;
                                 candKey1 = rl.g.lm;
                                 candKey2 = rl.d.lm;
                                 if(selecteds[i].key == candKey1){
@@ -175,12 +223,12 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                                     rl.d.class = "similar1";
                                 }
                             }
-                     
+
                             if(selecteds[i].key == candKey1 || selecteds[i].key == candKey2)
                                 return true;
                         }
                         return false;
-                    })
+                    });
                     
                     var words = [];
                     feature.forEach(function(f){
@@ -194,64 +242,56 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                             f.d.class = f.d.class ? f.d.class : "similar2";
                             f.g.class = f.g.class ? f.g.class : "similar1";
                         }
-                        
-                        
                         if(words.filter(function(wk) { return wk.start == f.g.start;}).length == 0)
                             words.push(f.g);
                         if(words.filter(function(wk) { return wk.start == f.d.start;}).length == 0)
                             words.push(f.d);
                     })
+                    
+                    
                     words.sort(function(a,b){
                         return a.start - b.start;
-                    })
-                    
+                    });
+                    console.log(words);
                     var newText = "";
                     var last = 0;
                     words.forEach(function(w){
                         newText += r.document.text.substr(last,w.start-last) + '<span class="' + w.class + '">' + w.wd + "</span>";
                         last = w.ed;
                     })
-                    newText +=  r.document.text.substr(last);
+                    newText +=  text.substr(last);
                     
-                    
-                    var splited = newText.split(" ");
-                    var sniStart = 0;
-                    if($scope.searchTerm.length >0){
-                        for(i =0; i < splited.length; i++){
-                            var w = splited[i];
-                            $scope.searchTerm.split(" ").forEach(function(sh){
-                                if(w == sh){
-                                    
-                                    w = '<span class="searchTerm">' + w + "</span>";
-                                    splited[i] = w;
-                                    if(sniStart == 0)
-                                    {
-                                        var total = 0;
-                                        for(j=0; j < i; j++){
-                                            total += splited[j].length;
-                                        }
-                                        sniStart = total -50 < 0? 0: total -50;
-                                    }
-                                }
-                            });
-                        }
+                    if($scope.searchTerm.length > 0){
+                        var serachExp = new RegExp('('+$scope.searchTerm+')','i');
+                        newText = newText.replace(serachExp, '<span class="searchTerm">$1</span>')
+                        sniStart = newText.search(serachExp);
+                        console.log(sniStart);
                     }
+                    
                     if(words.length > 0)
                     {
-                        var sniStart = words[0].start -50 > 0 ?  words[0].start -50 : 0;
-                        var sniEnd = sniStart + 140 < newText.length ?  sniStart+144 : newText.length;
+                        var sniStart = words[0].start > 0 ?  words[0].start : 0;
                     } 
-                    newText = splited.join(" ");
                     
-                    var snippet = newText.substr(sniStart, 200);
+                    if(words.length >0 || $scope.searchTerm.length > 0){ 
+                        var last = newText.lastIndexOf('</span>');
+                        last = newText.length < last+50 ? newText.length : last+50;
+
+                        var sniStart = newText.indexOf('<span class=');
+                        sniStart = 0 > sniStart-50 ? 0 : sniStart-50;
+                    } else {
+                        sniStart = 0;
+                        last = 150;
+                    }
                     
-                    var review = { text: newText, snippet: snippet,entity: r.entity.name, source: r};
+                    debugObject = newText.trim();
+                    var review = { text: newText, snippet: newText.slice(sniStart,last).trim() ,entity: r.entity.name, source: r};
                     $scope.reviews.push(review);
-                })
-                
-            }); 
+                });
+            });
         }
         $scope.load = function(){
+           $scope.loading++;
             var pattern = $scope.pattern;
             if(pattern.length == 0){
                 pattern = "Noun|Adjective|Verb+Noun|Adjective|Verb";
@@ -261,55 +301,74 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                 $scope.setData(result);
                 $scope.loadreviews();
                 $scope.refresh();
+                $scope.loading--;
+            }).catch(function(error){
+                alert('Sorry! a problem occurred');
+                $scope.loading--;
             })
         }
         $scope.loadMeta = function(callback){
-            
+            $scope.loading++;
             db.mapping($scope.index).then(function(result){
                 if(!result){
-                    alert('Sorry! one problem occurred. The page will be reloaded');
+                    alert('Sorry! a problem occurred. The page will be reloaded');
                     location.reload();
                 }
                 
+                
                 result = result[$scope.index].mappings.documents.properties;
                 $scope.fields = [];
-                $scope.xOperation = {field: "", operation: "avg"};
-                $scope.yOperation = {field: "", operation: "variance"};
+                var xSelected;
+                var ySelected;
                 for(f in result.author.properties){
                     if(result.author.properties[f].type == "long" ||  result.author.properties[f].type == "double" ||  result.author.properties[f].type == "string"){
-                        $scope.fields.push({value: "author."+f, text: f, type: "Author"});
-                        if(f == $scope.starters[$scope.index]){
-                            $scope.xOperation.field = doc;
-                            $scope.yOperation.field = doc;
-                        }
+                        doc = {value: "author."+f, text: f, type: "Author"};
+                        $scope.fields.push(doc);
+                        if("document."+f ==  $scope.starters[$scope.index].xField)
+                            xSelected = doc;
+                        if("document."+f ==  $scope.starters[$scope.index].yField)
+                            ySelected = doc;
                     }
                 }
                 for(f in result.document.properties){
                      if(result.document.properties[f].type == "long" ||  result.document.properties[f].type == "double" ||  result.document.properties[f].type == "string"){
-                         doc = {value: "document."+f, text: f, type: "Document"};
+                        doc = {value: "document."+f, text: f, type: "Document"};
                         $scope.fields.push(doc);
-                        if(f == $scope.starters[$scope.index]){
-                            $scope.xOperation.field = doc;
-                            $scope.yOperation.field = doc;
-                        }
+                        if("document."+f ==  $scope.starters[$scope.index].xField)
+                            xSelected = doc;
+                        if("document."+f ==  $scope.starters[$scope.index].yField)
+                            ySelected = doc;
                      }
                 }
                 for(f in result.entity.properties){
                      if(result.entity.properties[f].type == "long" ||  result.entity.properties[f].type == "double" ||  result.entity.properties[f].type == "string"){
-                        $scope.fields.push({value: "entity."+f, text: f, type: "Entity"});
-                         if(f == $scope.starters[$scope.index]){
-                            $scope.xOperation.field = doc;
-                            $scope.yOperation.field = doc;
-                        }
+                        doc = {value: "entity."+f, text: f, type: "Entity"};
+                        $scope.fields.push(doc);
+                        if("document."+f ==  $scope.starters[$scope.index].xField)
+                            xSelected = doc;
+                        if("document."+f ==  $scope.starters[$scope.index].yField)
+                            ySelected = doc;
                     }
                 }
-                //$scope.xOperation = {field: $scope.fields[0], operation: "avg"};
-                //$scope.yOperation = {field: $scope.fields[0], operation: "variance"};
+                
+                $scope.xOperation = { field: xSelected, operation: $scope.starters[$scope.index].xMetric};
+                $scope.yOperation = { field: ySelected, operation: $scope.starters[$scope.index].yMetric};
+                
+                if($scope.starters[$scope.index].pattern){
+                    $scope.pattern = $scope.starters[$scope.index].pattern;
+                }
+                if($scope.starters[$scope.index].searchTerm){
+                    $scope.searchTerm = $scope.starters[$scope.index].searchTerm;
+                }
+                
+                
+                
                 
                 if(callback)
                     callback(result);
                 
-
+                $scope.loading--;
+                
             });
             
            
@@ -397,6 +456,11 @@ function Scatter(selector){
             .on("click", backClick)
         dom.body = dom.svg.append("g").attr("class","vizBody");
         
+        dom.legend = dom.element.select("#legend")
+            .append("svg")
+            .attr("width", 300)
+            .attr("height", 60);
+        
         self.setBounds();
         
         //Build x Axis
@@ -445,11 +509,34 @@ function Scatter(selector){
         x.scale.domain([d3.min(data, x.value), d3.max(data, x.value)]);
         y.scale.domain([d3.min(data, y.value), d3.max(data, y.value)]);
         s.scale.domain([d3.min(data, s.value), d3.max(data, s.value)]);
+        
+        if(mainData.x_termsIndex){
+            var  minY = Infinity, minS =Infinity,  maxY = 0, maxS =0;
+            data.forEach(function(c){
+                 c.x.forEach(function(d){
+                    if(minY > d.stats_y.value)
+                        minY = d.stats_y.value;
+                    if(maxY < d.stats_y.value)
+                        maxY = d.stats_y.value
+                        
+                    if(minS > d.doc_count)
+                        minS = d.doc_count;
+                        
+                    if(maxS < d.doc_count)
+                        maxS = d.doc_count;
+                   
+                });
+            });
+ 
+            
+            y.scale.domain([minY, maxY]);
+            s.scale.domain([minS, maxS]);   
+        }
+        
         zoom.x(x.scale);
         zoom.y(y.scale);
     }    
     function mouseOver(d){
-        self.plotSiblings(d);
         if(self.onMouseOver)
             self.onMouseOver(d);
     }
@@ -477,7 +564,22 @@ function Scatter(selector){
         dom.xAxis.call(x.axis);
         dom.yAxis.call(y.axis);
         dom.dotSet.attr("cx", x.map).attr("cy", y.map)
-        
+        if(mainData.x_termsIndex){
+            height = 800;
+            margin.bottom= 330;
+            dom.svg
+                .attr("width", width)
+                .attr("height", height);
+            d3.selectAll("g.vizBody>g.x>g.tick>text").each(function() {
+                var sel = d3.select(this);
+                sel.text(mainData.x_termsIndex[+sel.text()]);
+                var w = -10;
+                sel.attr({
+                    "transform": "rotate(-90) translate("+w+" -12)",
+                    "style": "text-anchor:end"
+                });
+            });
+        }
                 
     }
 
@@ -498,38 +600,84 @@ function Scatter(selector){
        
     }
     
-    self.to_terms = function(operation, axis, axisName){
-        axis.value = function(d) {
+    self.to_terms = function(operation){
+        x.value = function(d) {
+            if(!d.x[0])
+                return -1;
             return mainData.x_termsIndex.indexOf(d.x[0].key);
         };
-        axis.scale = d3.scale.ordinal().range([0, innerWidth])
-        axis.map = function(d) { return x.scale(x.value(d))};
-        axis.axis = d3.svg.axis().scale(x.scale).orient("bottom")
+        x.scale = d3.scale.ordinal().range([0, innerWidth])
+        x.map = function(d) { return x.scale(x.value(d))};
+        x.axis = d3.svg.axis().scale(x.scale).orient("bottom")
             .innerTickSize(-innerHeight)
             .outerTickSize(0)
             .tickValues(mainData.x_termsIndex.map( function(d,ix) { console.log('mapping'); return ix; }))
             .tickPadding(10);
+        
+        y.value = function(d) {
+           
+            if(!d.x[0])
+                return 0;
+            return d.x[0].stats_y.value;
+        }
+        
+        s.value = function(d) {
+             if(!d.x[0])
+                return 0;
+            return d.x[0].doc_count;
+        }
+        
+        
         // TODO 
     }
+    
+    self.resize = function(){
+        console.log('update');
+        width = dom.element.node().getBoundingClientRect().width;
+        innerWidth = width - margin.left - margin.right,
+        x.scale.range([0, innerWidth]),
+        y.axis.innerTickSize(-innerWidth);
+            
+        self.setBounds();
+        dom.xAxisLabel.attr("x", innerWidth);        
+        
+        
+        self.refresh();
+    }
+    
+    
     
     
     self.plotSiblings = function(word){
         
         if(mainData.x_termsIndex){
-            console.log(word);
-            console.log("step 0");
-            var delay = 100;
+            var delay = 0;
+            
+            var line = d3.svg.line()
+                .x(function(d){return x.scale(mainData.x_termsIndex.indexOf(d.key))})
+                .y(function(d) { return y.scale(d.stats_y.value);});
+            
+            var localData = word.x.slice(0).sort(function(a,b){
+                return mainData.x_termsIndex.indexOf(a.key) - mainData.x_termsIndex.indexOf(b.key);
+            })
+            if(dom.trendline)
+                dom.trendline.remove();
+            dom.trendline = dom.board.append("path")
+              .datum(localData)
+              .attr("class", "trendLine")
+              .attr("d", line);
+            
             dom.siblingSet = dom.board.selectAll(".dotSibling").data(word.x.slice(1), function(d) {return word.key + "_" + d.key});
             dom.siblingSet
                 .enter()
                 .append("circle")
                 .attr("class", "dotSibling")
-                .attr("r", 0)
-            console.log("step 1");
-            dom.siblingSet.transition().duration(delay).attr("r",4)
+                .attr("r", function(d) { return s.scale(d.doc_count);})
+            
+            dom.siblingSet.transition().duration(delay).attr("r",function(d) { return s.scale(d.doc_count);})
                     .attr("cx", function(d){return x.scale(mainData.x_termsIndex.indexOf(d.key))})
                     .attr("cy", function(d) { return y.scale(d.stats_y.value);})
-            console.log("step 2");
+            
             dom.siblingSet
                 .exit()
                 .transition().duration(delay)
@@ -537,6 +685,20 @@ function Scatter(selector){
                 .remove();
         }
         
+    }
+    self.removeSiblings  = function(word){
+        
+        if(mainData.x_termsIndex){
+            var delay = 100;
+            dom.siblingSet = dom.board.selectAll(".dotSibling").data([]);
+            if(dom.trendline)
+                dom.trendline.remove();
+            dom.siblingSet
+                .exit()
+                .transition().duration(delay)
+                .attr("r", 0)
+                .remove();
+        }
     }
     
     //Public----------------------------------------------------------------------------------
@@ -550,7 +712,9 @@ function Scatter(selector){
     self.refresh = function(sorting){
         if(!built)
             return;
-         
+        
+        
+    
         var delay = 500;
         if(sorting){
             data.sort(function (a,b){
@@ -599,17 +763,21 @@ function Scatter(selector){
             .attr("r", 0)
             .remove();
         
+        if(mainData.x_termsIndex)
+            x.axis.tickValues(mainData.x_termsIndex.map(function(l,i) { return i })); 
         dom.xAxis.transition().duration(delay).call(x.axis);
         if(mainData.x_termsIndex){
             height = 800;
             margin.bottom= 330;
+
             dom.svg
                 .attr("width", width)
                 .attr("height", height);
             d3.selectAll("g.vizBody>g.x>g.tick>text").each(function() {
                 var sel = d3.select(this);
+                
                 sel.text(mainData.x_termsIndex[+sel.text()]);
-                var w = -10;//-sel.node().getBBox().width + 100;
+                var w = -10;
                 sel.attr({
                     "transform": "rotate(-90) translate("+w+" -12)",
                     "style": "text-anchor:end"
@@ -623,6 +791,35 @@ function Scatter(selector){
         if(y.operation){
             dom.yAxisLabel.text(y.operation.operation + "(" + y.operation.field.text + ")" );
         }
+       
+        self.removeSiblings();
+        data.filter(function (d) {return d._highlight}).forEach(function(d) { self.plotSiblings(d)});
+        
+        legendData = s.scale.ticks();
+        
+        while (legendData.length > 5){
+            result = [];
+            for(i =0; i < legendData.length-1; i+=2){
+                result.push(legendData[i]);
+            }
+            result.push(legendData[legendData.length-1]);
+            legendData = result;
+        }
+        legendData.sort(function (a,b) {return b-a});
+        
+        dom.legend.selectAll(".dotLegend").remove();
+        legendD = dom.legend.selectAll(".dotLegend").data(legendData);
+        legendD.exit().remove();
+        legendG = legendD.enter().append("g").attr("class", "dotLegend");
+        legendG.append("circle")
+            .attr("r", function(d) { return s.scale(d)})
+            .attr("cx", function(d,i) { return 280 - i*50})
+            .attr("cy", 20)
+        legendG.append("text")
+            .text(function(d) { return d})
+            .attr("x", function(d,i) { return 280 - i*50})
+            .attr("y", 55)
+            .attr("style", "text-anchor:middle")
         
     }
     

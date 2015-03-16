@@ -1,0 +1,126 @@
+ {
+    "documents": {
+        "properties": {
+            "author": {
+                "properties": {
+                    "compliments": {
+                        "type": "long"
+                    },
+                    "elite": {
+                        "type": "long"
+                    },
+                    "fans": {
+                        "type": "long"
+                    },
+                    "friends": {
+                        "type": "long"
+                    },
+                    "id": {
+                        "type": "string","index" : "not_analyzed"
+                    },
+                    "name": {
+                        "type": "string","index" : "not_analyzed"
+                    },
+                    "user_avg_stars": {
+                        "type": "double"
+                    },
+                    "votes": {
+                        "type": "long"
+                    },
+                    "yelping_since": {
+                        "type": "string","index" : "not_analyzed"
+                    }
+                }
+            },
+            "document": {
+                "properties": {
+                    "date": {
+                        "type": "date",
+                        "format": "dateOptionalTime"
+                    },
+                    "id": {
+                        "type": "string","index" : "not_analyzed"
+                    },
+                    "stars": {
+                        "type": "long"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "votes": {
+                        "properties": {
+                            "cool": {
+                                "type": "long"
+                            },
+                            "funny": {
+                                "type": "long"
+                            },
+                            "useful": {
+                                "type": "long"
+                            }
+                        }
+                    }
+                }
+            },
+            "entity": {
+                "properties": {
+                    "categories": {
+                        "type": "string","index" : "not_analyzed"
+                    },
+                    "city": {
+                        "type": "string","index" : "not_analyzed"
+                    },
+                    "docCount": {
+                        "type": "long"
+                    },
+                    "full_address": {
+                        "type": "string","index" : "not_analyzed"
+                    },
+                    "id": {
+                        "type": "string","index" : "not_analyzed"
+                    },
+                    "latitude": {
+                        "type": "double"
+                    },
+                    "longitude": {
+                        "type": "double"
+                    },
+                    "name": {
+                        "type": "string","index" : "not_analyzed"
+                    },
+                    "state": {
+                        "type": "string","index" : "not_analyzed"
+                    }
+                }
+            },
+            "terms": {
+                "type": "nested",
+                "properties":  {
+                    "r":{"type":"string", "index" : "not_analyzed"},
+                    "p":{"type":"string", "index" : "not_analyzed"},
+                    "pr":{"type":"string", "index" : "not_analyzed"},
+                    "g":{
+                        "properties": {
+                            "wd":{"type":"string", "index" : "not_analyzed"},
+                            "lm":{"type":"string", "index" : "not_analyzed"},
+                            "st":{"type":"long"},
+                            "ed":{"type":"long"},
+                            "tg":{"type":"string", "index" : "not_analyzed"},
+                            "ix":{"type":"long"}
+                        }
+                    },
+                    "d":{
+                        "properties": {
+                            "wd":{"type":"string", "index" : "not_analyzed"},
+                            "lm":{"type":"string", "index" : "not_analyzed"},
+                            "st":{"type":"long"},
+                            "ed":{"type":"long"},
+                            "tg":{"type":"string", "index" : "not_analyzed"},
+                            "ix":{"type":"long"}
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

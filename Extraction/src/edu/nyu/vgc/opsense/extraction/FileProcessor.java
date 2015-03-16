@@ -5,9 +5,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -27,8 +32,7 @@ public class FileProcessor {
 	public String input() { return input; }
 	public void input(String input) { this.input = input; }
 	
-	private String output = "";
-	public void output(String output) { this.output = output; }
+	private String output = null;
 	
 	public String output(){
 		if(this.output == null){
@@ -42,6 +46,7 @@ public class FileProcessor {
 	}
 	
 	public FileProcessor(String modelsDir){
+		System.out.println("FileProcessor: " + modelsDir);
 		txtProc = new TextProcessor(modelsDir);
 	}
 	
@@ -60,15 +65,15 @@ public class FileProcessor {
 	TextProcessor txtProc;
 	PrintWriter out ;
 	StopWatch timer;
+	public String method;
 	
 	
 	public void process(int start, int limit) throws IOException{
 		System.out.println(this.input);
-		System.out.println(this.output);
+		System.out.println(this.output());
 		System.out.println(start);
 		System.out.println(limit);
 		
-		return; /*
 		timer = new StopWatch();
 		timer.start();
 		this.start = start;
@@ -82,7 +87,7 @@ public class FileProcessor {
 			System.err.println("Line: " + count + "\n" + ex.getMessage());
 		}
 		timer.stop();
-		*/
+		
 	}
 	
 	public void processLine(String line){
@@ -93,9 +98,9 @@ public class FileProcessor {
 			JsonObject object = jsonReader.readObject();
 			jsonReader.close();
 			
-			//printJson(object);
 			String text = object.getJsonObject("document").getString("text");
-			JsonArray features = txtProc.process(text);
+			JsonArray features = null;
+			features = txtProc.process(text, method);
 			
 			object = jsonObjectToBuilder(object).add("terms", features).build();
 			
@@ -136,17 +141,21 @@ public class FileProcessor {
 	}
 	
 	public static void main(String[] args) throws IOException{
+		args = new String[] {
+				"/Volumes/Backup/Datasets/processText/yelp_health_raw.json", 
+				"/Users/cristian/Developer/models/nlp/",
+				"0", "10000000", "Distance"
+		};
+		
 		FileProcessor file = new FileProcessor(args[1]);
 		file.input(args[0]);
+		if(args.length >= 5){
+			String method = args[4];
+			file.method = method;
+		}
+		
 		file.process(Integer.parseInt(args[2]), Integer.parseInt(args[3]));
 	}
-	
-
-	
-	
-	
-	
-	
 }
 
 

@@ -19,6 +19,10 @@
                        <option value="yelphealth">Yelp Health</option>
                         <option value="zocodoc">Zoc Doc</option>
                         <option value="myworld">My World</option>
+                        <option value="ratemyprofessor">RateMyProfessor</option>
+                        <option value="yelprestaurants">Yelp Restaurants</option>
+                        
+                        
                    </select>
                 </li>
                 <li>
@@ -86,17 +90,17 @@
                    <span class="similar2">{{ i.key.split(" ")[1]}}</span>
                 </li>
                 <li class="actions">
-                    <button enabled=false>Group</button>
-                    <button class="btn-second">Remove</button>
+                    <button class="btn-second" ng-click="removeSelected()">Remove</button>
                 </li>
             </ul>
             <ul>
-               <li style="border-bottom: solid 1px #eee; padding-bottom:5px;"><input ng-model="termFilter" type="search" placeholder="search" style="width:90px" /> <button>+</button> </li>
+               <li style="border-bottom: solid 1px #eee; padding-bottom:5px;"><input ng-model="termFilter" type="search" placeholder="search" style="width:125px" /></li>
                 <li ng-repeat="i in data | filter: {key: termFilter}" ng-click="select(i, $event)" ng-class="classes('',i)" ng-mouseover="highlight(i)" ng-mouseleave="unhighlight(i)">{{i.key}}</li>
             </ul>
        </div>
        <div class="mainVizualization" id="vizContainer">
-           <h1>&nbsp; <span ng-show="getHiglited().key">{{getHiglited().key}} (x: {{getHiglited().x | number:1}} | y: {{getHiglited().y | number:1}} | count: {{getHiglited().review_count | number:1}} )</span></h1>
+           <h1>&nbsp; <span ng-show="getHiglited().key">{{getHiglited().key}} ({{xOperation.field.text}}: {{getHiglited().x | number:1}} <span ng-show="xOperation.field.text != yOperation.field.text">| {{yOperation.field.text}}: {{getHiglited().y | number:1}} </span> | count: {{getHiglited().review_count}} )</span></h1>
+           <div id="legend"></div>
        </div>
        <div id="snippetList">
            <ul>
@@ -113,6 +117,9 @@
                 <div style="text-align: right"><button>Close</button></div>
                 
             </div>
+        </div>
+        <div ng-show="loading > 0" class="loading">
+           <h1>Loading...</h1> 
         </div>
     </div>
     
