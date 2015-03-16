@@ -22,8 +22,12 @@ public class TextProcessor {
 		parser = new Parser(modelsDir);
 	}
 	
-	public JsonArray process(String text){
-		JsonArray result = getJSON(parser.selectRelations(text));
+	public JsonArray process(String text, String method){
+		JsonArray result = null;
+		if(method == null || method.equals("Dependency"))
+			result = getJSON(parser.selectRelations(text));
+		else if(method.equals("Distance"))
+			result = getJSON(parser.selectRelationsByDistance(text,5));
 		return result;
 	}
 	

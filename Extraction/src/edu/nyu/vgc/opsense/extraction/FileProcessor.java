@@ -65,6 +65,7 @@ public class FileProcessor {
 	TextProcessor txtProc;
 	PrintWriter out ;
 	StopWatch timer;
+	public String method;
 	
 	
 	public void process(int start, int limit) throws IOException{
@@ -97,9 +98,9 @@ public class FileProcessor {
 			JsonObject object = jsonReader.readObject();
 			jsonReader.close();
 			
-			//printJson(object);
 			String text = object.getJsonObject("document").getString("text");
-			JsonArray features = txtProc.process(text);
+			JsonArray features = null;
+			features = txtProc.process(text, method);
 			
 			object = jsonObjectToBuilder(object).add("terms", features).build();
 			
@@ -140,8 +141,19 @@ public class FileProcessor {
 	}
 	
 	public static void main(String[] args) throws IOException{
+		args = new String[] {
+				"/Volumes/Backup/Datasets/processText/yelp_health_raw.json", 
+				"/Users/cristian/Developer/models/nlp/",
+				"0", "10000000", "Distance"
+		};
+		
 		FileProcessor file = new FileProcessor(args[1]);
 		file.input(args[0]);
+		if(args.length >= 5){
+			String method = args[4];
+			file.method = method;
+		}
+		
 		file.process(Integer.parseInt(args[2]), Integer.parseInt(args[3]));
 	}
 }

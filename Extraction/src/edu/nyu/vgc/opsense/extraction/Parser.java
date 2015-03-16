@@ -2,6 +2,7 @@ package edu.nyu.vgc.opsense.extraction;
 
 import edu.stanford.nlp.ie.AbstractSequenceClassifier;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
+import edu.stanford.nlp.international.Languages.Language;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.HasWord;
@@ -10,6 +11,7 @@ import edu.stanford.nlp.ling.TaggedWord;
 import edu.stanford.nlp.process.DocumentPreprocessor;
 import edu.stanford.nlp.process.Morphology;
 import edu.stanford.nlp.tagger.maxent.MaxentTagger;
+import edu.stanford.nlp.trees.GrammaticalRelation;
 import edu.stanford.nlp.trees.GrammaticalStructure;
 import edu.stanford.nlp.trees.TypedDependency;
 
@@ -22,6 +24,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.xalan.xsltc.dom.ExtendedSAX;
 
 
 public class Parser {
@@ -97,6 +101,9 @@ public class Parser {
             return word;
         return m.lemma(word, tag).toLowerCase();
     }
+    
+    public GrammaticalRelation rlnDistance = 
+    		new GrammaticalRelation(GrammaticalRelation.Language.Any, "DIST", "Distance", null);
   
     private void selectEntites(List<TaggedWord> sentence, HashMap<String, String> entities) {
     	classifier.classifySentence(sentence)
@@ -121,6 +128,7 @@ public class Parser {
     	return entities;
 	}
     
+    //Change this to Distance
     public List<TypedDependency>  selectRelations (String document) {
 		DocumentPreprocessor tokenizer = new DocumentPreprocessor(new StringReader(document));
 		List<TypedDependency> allDependencies = new LinkedList();
@@ -144,6 +152,60 @@ public class Parser {
 	    	allDependencies.addAll(dependencies);
 	    }
 		return allDependencies;
+    }
+    
+    
+    public List<TypedDependency>  selectRelationsByDistance(String document, int distance) {
+		DocumentPreprocessor tokenizer = new DocumentPreprocessor(new StringReader(document));
+		List<TypedDependency> allDependencies = new LinkedList();
+		int idx = 1;
+		for (List<HasWord> sentence : tokenizer) {
+	    	List<TaggedWord> tagged = tagger.tagSentence(sentence); //TAG SENTENCE
+	    	List<CoreLabel> entities = getEntites(tagged, idx++);
+	    	for(int i=0; i< tagged.size(); i++){
+	    		if(NounNodes.contains(tagged.get(i).tag())){
+	    			List<TypedDependency> dependencies = getWordDependenciesbyDistance(tagged, i, POSNodes);
+	    			dependencies.forEach(dp -> {
+	    	    		setLemmaIfNot(dp.gov(), entities);
+	    	    		setLemmaIfNot(dp.dep(), entities);
+	    	    	});
+	    			
+	    			allDependencies.addAll(dependencies);
+	    		} else if(POSNodes.contains(tagged.get(i).tag())) {
+	    			List<TypedDependency> dependencies = getWordDependenciesbyDistance(tagged, i, NounNodes);
+	    			dependencies.forEach(dp -> {
+	    	    		setLemmaIfNot(dp.gov(), entities);
+	    	    		setLemmaIfNot(dp.dep(), entities);
+	    	    	});
+	    			
+	    			allDependencies.addAll(dependencies);
+	    		}
+	    	}
+	    }
+		
+		return allDependencies;
+    }
+    public List<TypedDependency> getWordDependenciesbyDistance(List<TaggedWord> tagged, int idx, Set<String> tagList){
+    	List<TypedDependency> result = new LinkedList();
+    	IndexedWord w1 = getIndexed(tagged.get(idx), idx);
+    	for(int i = idx+1; i<tagged.size() && i <= (idx+4); i++){
+    		IndexedWord w2 = getIndexed(tagged.get(i),i);
+    		if(tagList.contains(w2.tag())){
+    			TypedDependency tp = new TypedDependency(rlnDistance, w1, w2);
+    			result.add(tp);
+    		}
+    	}
+    	
+    	return result;
+    }
+    
+    public IndexedWord getIndexed(TaggedWord w, int idx){
+    	IndexedWord w1 = new IndexedWord(w);
+    	w1.setBeginPosition(w.beginPosition());
+    	w1.setEndPosition(w.endPosition());
+    	w1.setIndex(idx);
+    	w1.setTag(w.tag());
+    	return w1;
     }
     
     private void setLemmaIfNot(IndexedWord word, List<CoreLabel> entities) {

@@ -1,0 +1,124 @@
+ {
+    "documents": {
+        "properties": {
+            "author": {
+                "properties": {
+                    "class": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "grade": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "id": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "interest": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "takenForCredit": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    }
+                }
+            },
+            "document": {
+                "properties": {
+                    "attendance": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "date": {
+                        "type": "date",
+                        "format": "dateOptionalTime"
+                    },
+                    "id": {
+                        "type": "long"
+                    },
+                    "rating_Avg": {
+                        "type": "double"
+                    },
+                    "rating_Clarity": {
+                        "type": "long"
+                    },
+                    "rating_Easiness": {
+                        "type": "long"
+                    },
+                    "rating_Helpful": {
+                        "type": "long"
+                    },
+                    "tags": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "textBook": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "votes_help": {
+                        "type": "long"
+                    },
+                    "votes_no_help": {
+                        "type": "long"
+                    }
+                }
+            },
+            "entity": {
+                "properties": {
+                    "Department": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "Institution": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "docCount": {
+                        "type": "long"
+                    },
+                    "id": {
+                        "type": "long"
+                    },
+                    "name": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    }
+                }
+            },
+            "terms": {
+                "type": "nested",
+                "properties":  {
+                    "r":{"type":"string", "index" : "not_analyzed"},
+                    "p":{"type":"string", "index" : "not_analyzed"},
+                    "pr":{"type":"string", "index" : "not_analyzed"},
+                    "g":{
+                        "properties": {
+                            "wd":{"type":"string", "index" : "not_analyzed"},
+                            "lm":{"type":"string", "index" : "not_analyzed"},
+                            "st":{"type":"long"},
+                            "ed":{"type":"long"},
+                            "tg":{"type":"string", "index" : "not_analyzed"},
+                            "ix":{"type":"long"}
+                        }
+                    },
+                    "d":{
+                        "properties": {
+                            "wd":{"type":"string", "index" : "not_analyzed"},
+                            "lm":{"type":"string", "index" : "not_analyzed"},
+                            "st":{"type":"long"},
+                            "ed":{"type":"long"},
+                            "tg":{"type":"string", "index" : "not_analyzed"},
+                            "ix":{"type":"long"}
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
