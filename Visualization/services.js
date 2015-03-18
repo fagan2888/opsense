@@ -15,8 +15,18 @@ vizServices.factory('db', function(client) {
     self.get2 = function(index, filter, pattern, x, y, count){
         var limit = count | 500;
         var query = {};
+        //Original
         if(filter && filter.length > 0){
             query.query = { "match_phrase" : { "document.text" : filter }}
+        }
+        
+        if(filter && filter.length > 0 && filter[0] == "_"){
+            query.query = { 
+                "query_string" : {
+                    default_field : "document.text",
+                    query : filter.substring(1)
+                }
+            }
         }
         
         if(pattern.split("+").length > 1){
@@ -141,6 +151,14 @@ vizServices.factory('db', function(client) {
             if(filter && filter.length > 0){
                 query.query.filtered.query = { "match_phrase" : { "document.text" : filter }}
             }
+            if(filter && filter.length > 0 && filter[0] == "_"){
+                query.query.filtered.query = { 
+                    "query_string" : {
+                        default_field : "document.text",
+                        query : filter.substring(1)
+                    }
+                }
+            }
         } else {
             var query =
             {
@@ -153,6 +171,14 @@ vizServices.factory('db', function(client) {
             };
             if(filter && filter.length > 0){
                 query.query.filtered.query = { "match_phrase" : { "document.text" : filter }}
+            }
+            if(filter && filter.length > 0 && filter[0] == "_"){
+                query.query.filtered.query = { 
+                    "query_string" : {
+                        default_field : "document.text",
+                        query : filter.substring(1)
+                    }
+                }
             }
         }
         

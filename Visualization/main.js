@@ -28,7 +28,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     yField: "document.Overall"
                 },
 
-                myworld: {
+                myworld2: {
                     xMetric: "terms",
                     xField: "document.priorities",
                     yMetric: "value_count",
