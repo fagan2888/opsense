@@ -2,7 +2,6 @@ package edu.nyu.vgc.opsense.extraction;
 
 import edu.stanford.nlp.ie.AbstractSequenceClassifier;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
-import edu.stanford.nlp.international.Languages.Language;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.HasWord;
@@ -18,14 +17,12 @@ import edu.stanford.nlp.trees.TypedDependency;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.xalan.xsltc.dom.ExtendedSAX;
 
 
 public class Parser {
@@ -105,7 +102,7 @@ public class Parser {
     public GrammaticalRelation rlnDistance = 
     		new GrammaticalRelation(GrammaticalRelation.Language.Any, "DIST", "Distance", null);
   
-    private void selectEntites(List<TaggedWord> sentence, HashMap<String, String> entities) {
+    /*private void selectEntites(List<TaggedWord> sentence, HashMap<String, String> entities) {
     	classifier.classifySentence(sentence)
 		.stream()
 		.filter(w -> !w.get(CoreAnnotations.AnswerAnnotation.class).equals("O"))
@@ -113,7 +110,7 @@ public class Parser {
     		String entity = cl.get(CoreAnnotations.AnswerAnnotation.class);
     		entities.put(cl.word() + cl.beginPosition() + cl.endPosition(), entity);
     	});
-	}
+	}*/
     
     private List<CoreLabel> getEntites(List<TaggedWord> sentence, int sentIdx) {
     	List<CoreLabel> entities = classifier.classifySentence(sentence)

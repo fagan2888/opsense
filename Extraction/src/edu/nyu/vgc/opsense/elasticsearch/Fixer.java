@@ -42,7 +42,7 @@ public abstract class Fixer {
 		return jo;
 		
 	}
-	
+	//This do not make sense
 	public JsonObject replace(JsonObject obj, String field, Map<Object, Object> map){
 		Object currValue=null;
 		for(Object j: map.keySet()){
@@ -51,6 +51,17 @@ public abstract class Fixer {
 		}
 		Object res = getEqualType(obj, currValue, field);
 		add(obj, field, map.get(res));
+		return obj;
+	}
+	
+	public JsonObject replace(JsonObject obj, String field, JsonObject map){
+		Object currValue=null;
+		for(Map.Entry<String, JsonElement> j: map.entrySet()){
+			currValue = j.getKey();
+			break;
+		}
+		Object res = getEqualType(obj, currValue, field);
+		add(obj, field, map.get(res.toString()));
 		return obj;
 	}
 	

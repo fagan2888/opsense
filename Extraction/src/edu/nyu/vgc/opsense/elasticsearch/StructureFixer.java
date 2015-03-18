@@ -32,6 +32,7 @@ public class StructureFixer {
 	Fixer fixer;
 	
 	public boolean testMode = false;
+	public int countPrinted = 0;
 	public String type = "json";
 	Gson gson = new Gson();
 	
@@ -100,14 +101,15 @@ public class StructureFixer {
 			in = new FileReader(this.source);
 			Iterable<CSVRecord> records = CSVFormat.EXCEL.withHeader().parse(in);
 			int count = 0;
-			
 			for(CSVRecord record: records){
 				count++;
+				
 				if(count > this.limit){
 					return;
 				}
 				String json = gson.toJson(record.toMap());
-				processJsonLine(json, count);
+				String id = processJsonLine(json, count);
+				printStats(count, 5880032, id);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -152,7 +154,10 @@ public class StructureFixer {
 	public void writeToFile(JsonObject object){
 		if(object != null){
 			if(testMode){
-				printJson(object);
+				if(this.countPrinted == 0){
+					printJson(object);
+					countPrinted++;
+				}
 			} else {
 				
 				try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(this.output(), true)))) {
