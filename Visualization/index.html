@@ -27,16 +27,22 @@
                 </li>
                 <li>
                    <label>Pattern: </label>
-                   <input ng-model="pattern" type="text">
+                   <input ng-model="pattern" ng-model-options="{ updateOn: 'blur' }" type="text">
                     &nbsp;&nbsp;
                    <label>Search: </label>
-                   <input type="search" ng-model="searchTerm">
+                   <input type="search" ng-model="searchTerm" ng-model-options="{ updateOn: 'blur' }">
                     &nbsp;&nbsp;
                    <label>Num Reviews: </label>
                    <label>{{mainData.hits}}</label>
                 </li>
                 <li>
                    <button ng-click="load()">Load</button>
+                </li>
+                <li>
+                   <button ng-click="reset()">Reset</button>
+                </li>
+                <li>
+                   <button ng-click="goBack()">Back</button>
                 </li>
            </ul>
        </div>

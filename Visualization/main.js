@@ -4,7 +4,9 @@ var VizApp = angular.module('VizApp', ['vizServices', 'ui.bootstrap', 'ngSanitiz
 VizApp.controller('MainController', function ($scope, db, analytics, $modal, $log) {
         $scope.data = [];
         $scope.scatter = new Scatter("#vizContainer");
-        
+        $scope.preventReload = false;
+        $scope.currentStates = {};
+    
         $scope.selectedCount = 0;
         $scope.init = function(){
             $scope.loading = 0;
@@ -50,12 +52,50 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     yField: "document.stars"
                 }
             }
+            window.onpopstate = function(event) {
+                $scope.back(event);
+            };
         }
 
         $scope.$watch('index', function(newValue, oldValue) {
-            console.log('INdex Changed');
-            $scope.reloadAll();  
+            console.log('Index Changed');
+            if(!$scope.preventReload)
+                $scope.reloadAll();  
         });
+    
+        $scope.saveState = function(type, value){
+            var state = {
+                type: type,
+                index: $scope.index,
+                pattern: $scope.pattern,
+                searchTerm: $scope.searchTerm,
+                termFilter: $scope.termFilter,
+                xOperation: $scope.xOperation,
+                yOperation: $scope.yOperation,
+                data: $scope.mainData
+            }
+            
+            var Title = null;
+            switch (type){
+                case 'remove':
+                    Title = "Removed: " + (value.length == 1 ? value[0].key: value.length) ;
+                    break;
+                case 'load':
+                    Title = "Refreshed: " + state.index;
+                    break;
+                case 'index':
+                    Title = "Loaded: " + state.index;
+                    break;
+                case 'select':
+                    Title = "Selected: " + value.key;
+                    break;
+            }
+            document.title = Title;
+            $scope.currentStates = state;
+            history.pushState(state, Title, null);
+            console.log(state);
+            document.title = "OpSense";
+        }
     
         $scope.getHiglited = function(){
             return $scope.data.filter(function (d) { return d._highlight})[0];
@@ -81,13 +121,15 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         $scope.highlight = function(i){ i._highlight = true; $scope.refresh();}
         $scope.unhighlight = function(i){ i._highlight = false; $scope.refresh();}
         $scope.select = function(i,event) {
-            if(!event.shiftKey)
-                $scope.clear();
+            if(!event.shiftKey){
+                $scope.clear(true);
+            }
 
             i._selected = !i._selected;
             $scope.setSimilar();
             $scope.refresh(true);
             $scope.loadreviews();
+            $scope.saveState("select", i);
         }
         
         $scope.reloadAll = function(){
@@ -96,7 +138,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             $scope.inter = true;
             $scope.termFilter = "";
             $scope.loadMeta(function (result){
-                $scope.load();
+                $scope.load(true);
             })
         }
         
@@ -105,14 +147,17 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             $scope.mainData.buckets = newBuckets;
             $scope.setData($scope.mainData);
             $scope.refresh();
+            $scope.saveState("remove",[d]);
         }
         
         $scope.removeSelected = function(){
             var newBuckets = $scope.data.filter(function(item) { 
                 var result = true;
                 $scope.getSelected().forEach(function(d){
-                    if(item.key == d.key)
+                    if(item.key == d.key){
                         result = false;
+                        $scope.saveState("remove",item);
+                    }
                 })
                 return result;
             });
@@ -144,12 +189,14 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             return $scope.data.filter(function (d) { return d._selected});
         }
         
-        $scope.clear = function(){
+        $scope.clear = function(noSave){
             for(i=0; i< $scope.data.length; i++){
                 $scope.data[i]._selected = false;
                 $scope.data[i]._highlight = false;
                 $scope.data[i]._similar = 0;
             }
+            if(!noSave)
+                $scope.saveState("clear");
         }
         
         $scope.clearAndRefresh = function(){
@@ -185,6 +232,9 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         $scope.refresh = function(sort){
             $scope.selectedCount = $scope.getSelected().length;
             $scope.scatter.refresh(sort);
+        }
+        $scope.debug = function(){
+            console.log($scope.data);
         }
         
         $scope.getValue = function(review, axis){
@@ -252,7 +302,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     words.sort(function(a,b){
                         return a.start - b.start;
                     });
-                    console.log(words);
+                    
                     var newText = "";
                     var last = 0;
                     words.forEach(function(w){
@@ -265,7 +315,6 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                         var serachExp = new RegExp('('+$scope.searchTerm+')','i');
                         newText = newText.replace(serachExp, '<span class="searchTerm">$1</span>')
                         sniStart = newText.search(serachExp);
-                        console.log(sniStart);
                     }
                     
                     if(words.length > 0)
@@ -290,23 +339,68 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                 });
             });
         }
-        $scope.load = function(){
-           $scope.loading++;
-            var pattern = $scope.pattern;
-            if(pattern.length == 0){
-                pattern = "Noun|Adjective|Verb+Noun|Adjective|Verb";
+        $scope.load = function(ReloadedAll){
+            if(!$scope.preventReload){
+                $scope.loading++;
+
+                var pattern = $scope.pattern;
+                if(pattern.length == 0){
+                    pattern = "Noun|Adjective|Verb+Noun|Adjective|Verb";
+                }
+                db.get2($scope.index, $scope.searchTerm,pattern,$scope.xOperation , $scope.yOperation).then(function(result){
+                    result = analytics.preProcess(result, $scope.xOperation.operation, $scope.yOperation.operation);
+                    $scope.setData(result);
+                    $scope.loadreviews();
+                    $scope.refresh();
+                    $scope.loading--;
+                    if(ReloadedAll)
+                        $scope.saveState('index');
+                    else
+                        $scope.saveState('load');
+
+                }).catch(function(error){
+                    alert('Sorry! a problem occurred');
+                    $scope.loading--;
+                })
             }
-            db.get2($scope.index, $scope.searchTerm,pattern,$scope.xOperation , $scope.yOperation).then(function(result){
-                result = analytics.preProcess(result, $scope.xOperation.operation, $scope.yOperation.operation);
-                $scope.setData(result);
+        }
+        $scope.reset = function(){
+            $scope.reloadAll();
+        }
+        $scope.back = function(event){
+            var newState = event.state;
+            var oldState = $scope.currentStates;
+            $scope.setState(newState);    
+        }
+        
+        $scope.goBack = function(){
+            window.history.back();
+        }
+        
+        $scope.setState = function(state){
+            console.log(state);
+            $scope.preventReload = true;
+            $scope.index = state.index;
+            $scope.pattern = state.pattern;
+            $scope.searchTerm = state.searchTerm;
+            $scope.termFilter = state.termFilter;
+            
+            $scope.starters[state.index] = {
+                    xMetric: state.xOperation.operation ,
+                    xField: state.xOperation.field.value,
+                    yMetric: state.yOperation.operation,
+                    yField: state.yOperation.field.value
+            }
+          
+           // $scope.loadMeta(function(result){
+                $scope.setData(state.data);
                 $scope.loadreviews();
                 $scope.refresh();
-                $scope.loading--;
-            }).catch(function(error){
-                alert('Sorry! a problem occurred');
-                $scope.loading--;
-            })
+                $scope.preventReload = false; 
+                //console.log('loades');
+          //  })
         }
+        
         $scope.loadMeta = function(callback){
             $scope.loading++;
             db.mapping($scope.index).then(function(result){
@@ -589,8 +683,15 @@ function Scatter(selector){
     function changeTo(operation, axis){
         if(self["to_"+operation])
             self["to_"+operation] (operation, axis);
-        else
+        else {
+            console.log('Changing back');
+            y.value = function(d) { return d[y.field];}; 
+            s.value = function(d) {
+                return d[s.field];
+            }
+            //-------
             axis.value = function(d) {return d[x.field]};
+        }
             axis.scale = d3.scale.linear().range([0, innerWidth]);
             axis.map = function(d) { return x.scale(x.value(d))};
             axis.axis = d3.svg.axis().scale(x.scale).orient("bottom")
@@ -606,7 +707,7 @@ function Scatter(selector){
                 return -1;
             return mainData.x_termsIndex.indexOf(d.x[0].key);
         };
-        x.scale = d3.scale.ordinal().range([0, innerWidth])
+        x.scale = d3.scale.ordinal().range([150, innerWidth])
         x.map = function(d) { return x.scale(x.value(d))};
         x.axis = d3.svg.axis().scale(x.scale).orient("bottom")
             .innerTickSize(-innerHeight)
