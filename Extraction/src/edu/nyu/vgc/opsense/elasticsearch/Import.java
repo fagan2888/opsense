@@ -21,6 +21,8 @@ import javax.json.stream.JsonGenerator;
 
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 import java.text.SimpleDateFormat;
@@ -69,8 +71,9 @@ public class Import {
 	}
 	
 	public void go(){
+        Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", "opsensedb").build();
 		@SuppressWarnings("resource")
-		Client client = new TransportClient()
+		Client client = new TransportClient(settings)
     		.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
 		
 		Integer[] count = new Integer[1];
