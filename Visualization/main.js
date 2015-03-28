@@ -49,7 +49,8 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     xField: "document.stars",
                     yMetric: "variance",
                     pattern: "Noun+Adjective",
-                    yField: "document.stars"
+                    yField: "document.stars",
+                    searchTerm: "service"
                 }
             }
             window.onpopstate = function(event) {
