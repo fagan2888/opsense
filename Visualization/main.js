@@ -220,11 +220,20 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             if($scope.selectedCount > 0){
                 fixed += " inSelection";  
             }
+            if($scope.limit > 0){
+                if(d.review_count){
+                    if(d.review_count < $scope.limit){
+                        fixed += " dotHidden";
+                    }
+                }
+            }
+            
             return fixed;
         }
         
         $scope.setData = function (newData){
             $scope.mainData = newData;
+            $scope.mainData.limit = $scope.limit;
             $scope.data = newData.buckets;
             $scope.scatter.setData($scope.mainData, $scope.xOperation, $scope.yOperation);
            

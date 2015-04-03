@@ -356,3 +356,7 @@ svg .domain {
   max-height: 500px;
   overflow: auto;
 }
+
+.dotHidden{
+    display: none;  
+}

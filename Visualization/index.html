@@ -32,6 +32,9 @@
                    <label>Search: </label>
                    <input type="search" ng-model="searchTerm" ng-model-options="{ updateOn: 'blur' }">
                     &nbsp;&nbsp;
+                    <label>Limit: </label>
+                   <input type="number" style="width:40px" ng-model="limit" ng-model-options="{ updateOn: 'blur' }">
+                    &nbsp;&nbsp;
                    <label>Num Reviews: </label>
                    <label>{{mainData.hits}}</label>
                 </li>
