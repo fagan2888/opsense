@@ -16,9 +16,15 @@ vizServices.factory('db', function(client) {
         var limit = count | 500;
         var query = {};
         
-        if(index == "ratemyprofessor" && (!filter || filter.length == 0) ){
-            filter = "_entity.Department:\"English\"";
-        }
+        if(index == "ratemyprofessor"){
+           if(!filter || filter.length == 0) 
+                filter = "_entity.Department:\"Computer Science\"";
+            else
+                filter = filter + " +entity.Department:\"Computer Science\"";
+            
+            if(filter[0] != "_")
+                filter = "_" + filter;
+        } 
         //Original
         if(filter && filter.length > 0){
             query.query = { "match_phrase" : { "document.text" : filter }}
@@ -243,6 +249,18 @@ vizServices.factory('db', function(client) {
                     }
                 }
             };
+            
+            
+            if(index == "ratemyprofessor"){
+               if(!filter || filter.length == 0) 
+                    filter = "_entity.Department:\"Computer Science\"";
+                else
+                    filter = filter + " +entity.Department:\"Computer Science\"";
+
+                if(filter[0] != "_")
+                    filter = "_" + filter;
+            } 
+            
             if(filter && filter.length > 0){
                 query.query.filtered.query = { "match_phrase" : { "document.text" : filter }}
             }
@@ -264,6 +282,17 @@ vizServices.factory('db', function(client) {
                     }
                 }
             };
+            
+            if(index == "ratemyprofessor"){
+               if(!filter || filter.length == 0) 
+                    filter = "_entity.Department:\"Computer Science\"";
+                else
+                    filter = filter + " +entity.Department:\"Computer Science\"";
+
+                if(filter[0] != "_")
+                    filter = "_" + filter;
+            } 
+            
             if(filter && filter.length > 0){
                 query.query.filtered.query = { "match_phrase" : { "document.text" : filter }}
             }
