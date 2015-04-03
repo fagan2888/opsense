@@ -42,7 +42,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     yMetric: "variance",
                     yField: "document.rating_Avg",
                     pattern: "Noun+Adjective",
-                    searchTerm: "professor"
+                    searchTerm: ""
                 },
                 yelprestaurants: {
                     xMetric: "avg",
