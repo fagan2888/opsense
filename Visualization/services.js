@@ -15,6 +15,107 @@ vizServices.factory('db', function(client) {
     self.get2 = function(index, filter, pattern, x, y, count){
         var limit = count | 500;
         var query = {};
+        
+        if(index == "ratemyprofessor"){
+           if(!filter || filter.length == 0) 
+                filter = "_entity.Department:\"Computer Science\"";
+            else
+                filter = filter + " +entity.Department:\"Computer Science\"";
+            
+            if(filter[0] != "_")
+                filter = "_" + filter;
+        } 
+        //Original
+        if(filter && filter.length > 0){
+            query.query = { "match_phrase" : { "document.text" : filter }}
+        }
+        
+        if(filter && filter.length > 0 && filter[0] == "_"){
+            query.query = { 
+                "query_string" : {
+                    default_field : "document.text",
+                    query : filter.substring(1)
+                }
+            }
+        }
+        
+        if(pattern.split("+").length > 1){
+            query.aggs = {
+                "stats_x":getOperation(x),
+                "stats_y":getOperation(y),
+                "termsList" : {
+                    "nested" : {
+                        "path" : "terms"
+                    },
+                    "aggs" : {
+                        "list" : { 
+                            "filter": getTagFilter(pattern),
+                            "aggs" : {
+                                "terms" : { 
+                                    "terms" : { 
+                                        "exclude":"be .*|.* be|null .*|.* null",
+                                        "script":"doc['terms.g.tg'].value < doc['terms.d.tg'].value ? doc['terms.g.lm'].value + ' ' + doc['terms.d.lm'].value : doc['terms.d.lm'].value + ' ' + doc['terms.g.lm'].value",
+                                        "size":limit
+                                    },
+                                    "aggs":{
+                                        "stats":{
+                                            "reverse_nested":{},
+                                            "aggs":{
+                                                "stats_x":getOperation(x,y),
+                                                "stats_y":getOperation(y,x)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            query.aggs = {
+                "termsList" : {
+                    "nested" : {
+                        "path" : "terms"
+                    },
+                    "aggs" : {
+                        "list" : { 
+                            "filter": getTagFilter(pattern),
+                            "aggs" : {
+                                "terms" : { 
+                                    "terms" : { 
+                                        "exclude":"be .*|.* be|null .*|.* null",
+                                        "script":"def tags = ["+listOfTags(pattern)+"]; doc['terms.g.tg'].value.length() == 1 ? doc['terms.d.lm'].value : (tags.contains(doc['terms.g.tg'].value.substring(0,2)) ? doc['terms.g.lm'].value : doc['terms.d.lm'].value)",            
+                                        "size":limit
+                                    },
+                                    "aggs":{
+                                        "stats":{
+                                            "reverse_nested":{},
+                                            "aggs":{
+                                                "stats_x":getOperation(x,y),
+                                                "stats_y":getOperation(y,x)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return client.search({
+          index: index,
+          type: 'documents',
+          size: 0,
+          body: query
+        });
+    }
+    
+    
+     self.get3 = function(index, filter, pattern, x, y, count){
+        var limit = count | 500;
+        var query = {};
         //Original
         if(filter && filter.length > 0){
             query.query = { "match_phrase" : { "document.text" : filter }}
@@ -148,6 +249,18 @@ vizServices.factory('db', function(client) {
                     }
                 }
             };
+            
+            
+            if(index == "ratemyprofessor"){
+               if(!filter || filter.length == 0) 
+                    filter = "_entity.Department:\"Computer Science\"";
+                else
+                    filter = filter + " +entity.Department:\"Computer Science\"";
+
+                if(filter[0] != "_")
+                    filter = "_" + filter;
+            } 
+            
             if(filter && filter.length > 0){
                 query.query.filtered.query = { "match_phrase" : { "document.text" : filter }}
             }
@@ -169,6 +282,17 @@ vizServices.factory('db', function(client) {
                     }
                 }
             };
+            
+            if(index == "ratemyprofessor"){
+               if(!filter || filter.length == 0) 
+                    filter = "_entity.Department:\"Computer Science\"";
+                else
+                    filter = filter + " +entity.Department:\"Computer Science\"";
+
+                if(filter[0] != "_")
+                    filter = "_" + filter;
+            } 
+            
             if(filter && filter.length > 0){
                 query.query.filtered.query = { "match_phrase" : { "document.text" : filter }}
             }
