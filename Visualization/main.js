@@ -553,11 +553,19 @@ function Scatter(selector){
         .y(y.scale)
         .scaleExtent([1, 10])
         .on("zoom", zoomed);
+    
+    var zoomInitTranslate = zoom.translate();
+    var zoomInitScale = zoom.scale();
 
     //Private----------------------------------------------------------------------------------
     function init(){
         dom.svg = dom.element.append("svg")
             .on("click", backClick)
+            .on("dblclick", function() {
+                zoom.translate(zoomInitTranslate);
+                zoom.scale(zoomInitScale);
+                zoomed(true);
+            });
         dom.body = dom.svg.append("g").attr("class","vizBody");
         
         dom.legend = dom.element.select("#legend")
@@ -590,6 +598,8 @@ function Scatter(selector){
             .text(""); 
         
         dom.board = dom.body.append("g").call(zoom);
+        dom.board.on("dblclick.zoom", null);
+        
         var area = dom.board.append("rect")
             .attr("width", innerWidth)
             .attr("height", innerHeight);
@@ -654,6 +664,7 @@ function Scatter(selector){
             self.onClick(d,d3.event);
     }
     function backClick(d){
+        if(d3.event.detail > 1) return;
         if(self.onBackClick){
             self.onBackClick(d);
         }
@@ -664,10 +675,15 @@ function Scatter(selector){
         if(self.onRightClick)
             self.onRightClick(d);
     }
-    function zoomed(){
-        dom.xAxis.call(x.axis);
-        dom.yAxis.call(y.axis);
-        dom.dotSet.attr("cx", x.map).attr("cy", y.map)
+    function zoomed(isSmooth){
+        
+        function convert(sel) {
+            return isSmooth ? sel.transition().duration(500).ease("easeInOutCubic") : sel;
+        }
+        
+        convert(dom.xAxis).call(x.axis);
+        convert(dom.yAxis).call(y.axis);
+        convert(dom.dotSet).attr("cx", x.map).attr("cy", y.map)
         if(mainData.x_termsIndex){
             height = 800;
             margin.bottom= 330;
