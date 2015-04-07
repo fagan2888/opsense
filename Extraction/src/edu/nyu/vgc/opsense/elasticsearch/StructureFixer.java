@@ -53,7 +53,7 @@ public class StructureFixer {
                 sf.limit = Integer.parseInt(args[3]);
                 if(args.length > 4 && args[4].equals("true")){
                     System.out.println("Working in test mode");
-                    sf.testMode = true
+                    sf.testMode = true;
                 }
                 sf.type = sf.extension();
 		
