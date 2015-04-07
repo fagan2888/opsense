@@ -42,20 +42,17 @@ public class StructureFixer {
 		}
 		
 		StructureFixer sf = new StructureFixer();
-		if(args.length > 1){
-			sf.source =  args[0];
-			sf.fixerName = args[1];
-			if(args.length > 2){
-				sf.skip = Integer.parseInt(args[3]);
-				sf.limit = Integer.parseInt(args[4]);
-			}
-		}else{
-			sf.source = "/Volumes/Backup/Datasets/processText/MYWorld_votes_all.csv";
-			sf.fixerName = "MyWorld";
-			sf.skip = 0;
-			sf.limit = Integer.MAX_VALUE;
-			sf.type = sf.extension();
-		}
+		
+                sf.source =  args[0];
+                sf.fixerName = args[1];
+                sf.skip = Integer.parseInt(args[2]);
+                sf.limit = Integer.parseInt(args[3]);
+                if(args.length > 4 && args[4].equals("true")){
+                    System.out.println("Working in test mode");
+                    sf.testMode = true
+                }
+                sf.type = sf.extension();
+		
 		
 		Class<?> clazz = Class.forName("edu.nyu.vgc.opsense.elasticsearch." + sf.fixerName + "Fixer");
 		sf.fixer = (Fixer)clazz.newInstance();

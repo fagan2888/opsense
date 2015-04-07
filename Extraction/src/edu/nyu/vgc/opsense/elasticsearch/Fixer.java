@@ -157,7 +157,23 @@ public abstract class Fixer {
 		}
 		return obj2;
 	}
-	
+        
+        public JsonElement getElement(JsonObject obj, String path){
+            String[] fs = path.split("\\.");
+            JsonElement result = obj.get(fs[0]);
+            for(int i =1; i < fs.length; i++){
+                if(result.isJsonObject())
+                    result = result.getAsJsonObject().get(fs[i]);
+                else if (result.isJsonPrimitive())
+                    result = result.getAsJsonPrimitive();
+                else if (result.isJsonArray())
+                    result = result.getAsJsonArray();
+                else
+                    result = null;
+            }
+            return result;
+        }
+        
 	public JsonObject getParent(JsonObject jo, String k){
 		String[] fs = k.split("\\.");
 		JsonObject obj2 = jo;
