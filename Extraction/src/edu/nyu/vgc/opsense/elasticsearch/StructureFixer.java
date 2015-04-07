@@ -40,6 +40,10 @@ public class StructureFixer {
 		if(args.length == 1 && args[0].equals("help")){
 			System.out.println("usage: source fixer skip limit");
 		}
+                
+                for(int i =0; i<args.length; i++){
+                    System.out.println("arg:" + i + " = " + args[i]);
+                }
 		
 		StructureFixer sf = new StructureFixer();
 		
