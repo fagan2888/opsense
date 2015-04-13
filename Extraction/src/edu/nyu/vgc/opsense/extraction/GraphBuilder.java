@@ -59,7 +59,7 @@ public class GraphBuilder {
         }
 		
 	}
-	
+	/*
 	public DirectedGraph<IndexedWord, RelationshipEdge<IndexedWord>> getGraph(List<GrammaticalStructure> list) {
 		DirectedGraph<IndexedWord, RelationshipEdge<IndexedWord>> graph = new DefaultDirectedGraph<IndexedWord, RelationshipEdge<IndexedWord>>((Class<? extends RelationshipEdge<IndexedWord>>) RelationshipEdge.class);
 		
@@ -86,7 +86,7 @@ public class GraphBuilder {
 		getGramns(list);
 		return graph;
 	}
-	
+	*/
 	public void getGramns(List<GrammaticalStructure> list) {
 		list.stream().forEach(gs -> {
 			gs.typedDependenciesCCprocessed().forEach(tp -> {

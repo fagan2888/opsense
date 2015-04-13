@@ -1,0 +1,63 @@
+{  
+    "documents" : {
+        "properties": {
+            "entity":{
+                "properties": {
+                    "name":{"type":"string", "index" : "not_analyzed"},
+                    "docCount":{"type":"long"},
+                    "id":{"type":"string", "index" : "not_analyzed"}
+                }
+            },
+            "author":{
+                "properties": {
+                    "name":{"type":"string", "index" : "not_analyzed"},
+                    "docCount":{"type":"long"},
+                    "id":{"type":"string", "index" : "not_analyzed"}
+                }
+            },
+            "document":{
+                "properties": {
+                    "text":{
+                        "type":"string", 
+                        "fields": {
+                            "english" : {
+                              "type": "string",
+                              "analyzer": "english"
+                            }
+                        }
+                        
+                    },
+                    "id":{"type":"string", "index" : "not_analyzed"}
+                }
+            },
+            "terms": {
+                "type": "nested",
+                "properties":  {
+                    "r":{"type":"string", "index" : "not_analyzed"},
+                    "p":{"type":"string", "index" : "not_analyzed"},
+                    "pr":{"type":"string", "index" : "not_analyzed"},
+                    "g":{
+                        "properties": {
+                            "wd":{"type":"string", "index" : "not_analyzed"},
+                            "lm":{"type":"string", "index" : "not_analyzed"},
+                            "st":{"type":"long"},
+                            "ed":{"type":"long"},
+                            "tg":{"type":"string", "index" : "not_analyzed"},
+                            "ix":{"type":"long"}
+                        }
+                    },
+                    "d":{
+                        "properties": {
+                            "wd":{"type":"string", "index" : "not_analyzed"},
+                            "lm":{"type":"string", "index" : "not_analyzed"},
+                            "st":{"type":"long"},
+                            "ed":{"type":"long"},
+                            "tg":{"type":"string", "index" : "not_analyzed"},
+                            "ix":{"type":"long"}
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

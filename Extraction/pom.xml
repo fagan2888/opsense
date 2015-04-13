@@ -10,8 +10,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
         <configuration>
-          <source/>
-          <target/>
+          <source>1.8</source>
+        	<target>1.8</target>
         </configuration>
       </plugin>
     </plugins>
@@ -46,6 +46,26 @@
   		<groupId>org.elasticsearch</groupId>
   		<artifactId>elasticsearch</artifactId>
   		<version>1.4.4</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.mongodb</groupId>
+  		<artifactId>mongo-java-driver</artifactId>
+  		<version>2.13.0</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>com.google.code.gson</groupId>
+  		<artifactId>gson</artifactId>
+  		<version>2.3.1</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.apache.commons</groupId>
+  		<artifactId>commons-csv</artifactId>
+  		<version>1.1</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>com.optimaize.languagedetector</groupId>
+  		<artifactId>language-detector</artifactId>
+  		<version>0.4</version>
   	</dependency>
   </dependencies>
 </project>

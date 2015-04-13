@@ -1,0 +1,153 @@
+{
+    "documents": {
+        "properties": {
+            "author": {
+                "properties": {
+                    "age": {
+                        "type": "long"
+                    },
+                    "country": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "docCount": {
+                        "type": "long"
+                    },
+                    "education": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "id": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "name": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    }
+                }
+            },
+            "document": {
+                "properties": {
+                    "date": {
+                        "type": "date",
+                        "format": "dateOptionalTime"
+                    },
+                    "id": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "priorities": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "text": {
+                        "type": "string",
+                        "fields": {
+                            "english": {
+                                "type": "string",
+                                "analyzer": "english"
+                            }
+                        }
+                    }
+                }
+            },
+            "entity": {
+                "properties": {
+                    "docCount": {
+                        "type": "long"
+                    },
+                    "id": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "name": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "partner_code": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    }
+                }
+            },
+            "terms": {
+                "type": "nested",
+                "properties": {
+                    "d": {
+                        "properties": {
+                            "ed": {
+                                "type": "long"
+                            },
+                            "ix": {
+                                "type": "long"
+                            },
+                            "lm": {
+                                "type": "string",
+                                "index": "not_analyzed"
+                            },
+                            "sr": {
+                                "type": "long"
+                            },
+                            "st": {
+                                "type": "long"
+                            },
+                            "tg": {
+                                "type": "string",
+                                "index": "not_analyzed"
+                            },
+                            "wd": {
+                                "type": "string",
+                                "index": "not_analyzed"
+                            }
+                        }
+                    },
+                    "g": {
+                        "properties": {
+                            "ed": {
+                                "type": "long"
+                            },
+                            "ix": {
+                                "type": "long"
+                            },
+                            "lm": {
+                                "type": "string",
+                                "index": "not_analyzed"
+                            },
+                            "sr": {
+                                "type": "long"
+                            },
+                            "st": {
+                                "type": "long"
+                            },
+                            "tg": {
+                                "type": "string",
+                                "index": "not_analyzed"
+                            },
+                            "wd": {
+                                "type": "string",
+                                "index": "not_analyzed"
+                            }
+                        }
+                    },
+                    "p": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "pr": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "r": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    }
+                }
+            }
+        }
+    }
+}

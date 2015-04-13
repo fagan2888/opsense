@@ -15,10 +15,19 @@ import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.trees.TypedDependency;
 
 public class TextProcessor {
-	Parser parser = new Parser();
+	Parser parser;
 	
-	public JsonArray process(String text){
-		JsonArray result = getJSON(parser.selectRelations(text));
+	public TextProcessor(String modelsDir){
+		System.out.println("TextProcessor: " + modelsDir);
+		parser = new Parser(modelsDir);
+	}
+	
+	public JsonArray process(String text, String method){
+		JsonArray result = null;
+		if(method == null || method.equals("Dependency"))
+			result = getJSON(parser.selectRelations(text));
+		else if(method.equals("Distance"))
+			result = getJSON(parser.selectRelationsByDistance(text,5));
 		return result;
 	}
 	
@@ -27,6 +36,8 @@ public class TextProcessor {
 		relations.forEach(rln -> {
 			JsonObjectBuilder relation = Json.createObjectBuilder();
 			relation.add("r", rln.reln().getShortName());
+			relation.add("p", rln.gov().tag() + " " + rln.dep().tag());
+			relation.add("pr", rln.dep().tag() + " " + rln.gov().tag());
 			relation.add("g", indexedWordToJson(rln.gov()));
 			relation.add("d", indexedWordToJson(rln.dep()));
 			result.add(relation.build());
@@ -55,7 +66,7 @@ public class TextProcessor {
 		return Json.createObjectBuilder()
 				.add("wd", word.word())
 				.add("lm", word.lemma())
-				.add("st", word.beginPosition())
+				.add("sr", word.beginPosition())
 				.add("ed", word.endPosition())
 				.add("tg", word.tag())
 				.add("st", word.sentIndex())
