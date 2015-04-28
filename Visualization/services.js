@@ -18,9 +18,9 @@ vizServices.factory('db', function(client) {
         
         if(index == "ratemyprofessor"){
            if(!filter || filter.length == 0) 
-                filter = "_entity.Department:\"Computer Science\"";
+                filter = "_entity.Department:\"English\"";
             else
-                filter = filter + " +entity.Department:\"Computer Science\"";
+                filter = filter + " +entity.Department:\"English\"";
             
             if(filter[0] != "_")
                 filter = "_" + filter;
@@ -253,9 +253,9 @@ vizServices.factory('db', function(client) {
             
             if(index == "ratemyprofessor"){
                if(!filter || filter.length == 0) 
-                    filter = "_entity.Department:\"Computer Science\"";
+                    filter = "_entity.Department:\"English\"";
                 else
-                    filter = filter + " +entity.Department:\"Computer Science\"";
+                    filter = filter + " +entity.Department:\"English\"";
 
                 if(filter[0] != "_")
                     filter = "_" + filter;
@@ -285,9 +285,9 @@ vizServices.factory('db', function(client) {
             
             if(index == "ratemyprofessor"){
                if(!filter || filter.length == 0) 
-                    filter = "_entity.Department:\"Computer Science\"";
+                    filter = "_entity.Department:\"English\"";
                 else
-                    filter = filter + " +entity.Department:\"Computer Science\"";
+                    filter = filter + " +entity.Department:\"English\"";
 
                 if(filter[0] != "_")
                     filter = "_" + filter;
