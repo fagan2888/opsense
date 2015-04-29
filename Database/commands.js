@@ -34,7 +34,8 @@ nohup ./run.sh -c extraction.FileProcessor -a "/home/vgc/cristianfelix/data/json
 
  nohup find / -xdev -type f -perm +u=s -print 
 
-
+./run.sh -c elasticsearch.StructureFixer -a "/home/vgc/cristianfelix/data/json/rateMyProfessor_fixed_ready.json TermMerger 0 10000000"
+./run.sh -c elasticsearch.Import -a "/home/vgc/cristianfelix/data/json/rateMyProfessor_fixed_ready_fixed.json ratemyprofessor 0 100000000"
 
 nohup ./run.sh -c elasticsearch.Import -a "/home/vgc/cristianfelix/data/json/YelpRestaurant_fixed_ready.json yelprestaurants 0 1" > outImport.txt &
 

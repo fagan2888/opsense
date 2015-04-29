@@ -11,7 +11,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         $scope.init = function(){
             $scope.loading = 0;
             $scope.reviews = [];
-            $scope.index = "yelphealth";
+            $scope.index = "whs";
             $scope.pattern = "";
             $scope.searchTerm = "";
             $scope.inter = true;
@@ -51,6 +51,12 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     pattern: "Noun+Adjective",
                     yField: "document.stars",
                     searchTerm: "service"
+                },
+                whs: {
+                    xMetric: "value_count",
+                    xField: "document.id",
+                    yMetric: "value_count",
+                    yField: "document.id"
                 }
             }
             window.onpopstate = function(event) {

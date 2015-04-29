@@ -2,7 +2,7 @@ var vizServices = angular.module('vizServices', ['elasticsearch']);
 
 vizServices.service('client', function (esFactory) {
     return esFactory({
-        host: 'vgc.poly.edu/projects/r2sense',
+        host: 'localhost:9200',
         apiVersion: '1.4'
     });
 });
@@ -145,7 +145,7 @@ vizServices.factory('db', function(client) {
                                 "terms" : { 
                                     "terms" : { 
                                         "exclude":"be .*|.* be|null .*|.* null",
-                                        "script":"doc['terms.g.tg'].value < doc['terms.d.tg'].value ? doc['terms.g.lm'].value + ' ' + doc['terms.d.lm'].value : doc['terms.d.lm'].value + ' ' + doc['terms.g.lm'].value",
+                                        "field":"key",
                                         "size":limit
                                     },
                                     "aggs":{
