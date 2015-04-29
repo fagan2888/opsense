@@ -2,7 +2,7 @@ var vizServices = angular.module('vizServices', ['elasticsearch']);
 
 vizServices.service('client', function (esFactory) {
     return esFactory({
-        host: 'localhost:9200',
+        host: 'http://user:123456@vgc.poly.edu/projects/r2sense',
         apiVersion: '1.4'
     });
 });
@@ -11,16 +11,17 @@ vizServices.service('client', function (esFactory) {
 vizServices.factory('db', function(client) {
     var self = this;
     var client = client;
-
+    console.log(client);
+    
     self.get2 = function(index, filter, pattern, x, y, count){
         var limit = count | 500;
         var query = {};
         
         if(index == "ratemyprofessor"){
            if(!filter || filter.length == 0) 
-                filter = "_entity.Department:\"Computer Science\"";
+                filter = "_entity.Department:\"English\"";
             else
-                filter = filter + " +entity.Department:\"Computer Science\"";
+                filter = filter + " +entity.Department:\"English\"";
             
             if(filter[0] != "_")
                 filter = "_" + filter;
@@ -253,9 +254,9 @@ vizServices.factory('db', function(client) {
             
             if(index == "ratemyprofessor"){
                if(!filter || filter.length == 0) 
-                    filter = "_entity.Department:\"Computer Science\"";
+                    filter = "_entity.Department:\"English\"";
                 else
-                    filter = filter + " +entity.Department:\"Computer Science\"";
+                    filter = filter + " +entity.Department:\"English\"";
 
                 if(filter[0] != "_")
                     filter = "_" + filter;
@@ -285,9 +286,9 @@ vizServices.factory('db', function(client) {
             
             if(index == "ratemyprofessor"){
                if(!filter || filter.length == 0) 
-                    filter = "_entity.Department:\"Computer Science\"";
+                    filter = "_entity.Department:\"English\"";
                 else
-                    filter = filter + " +entity.Department:\"Computer Science\"";
+                    filter = filter + " +entity.Department:\"English\"";
 
                 if(filter[0] != "_")
                     filter = "_" + filter;

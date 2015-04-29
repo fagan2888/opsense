@@ -549,7 +549,7 @@ function Scatter(selector){
     var s = {
         field: "review_count",
         desc: "Frequency",
-        value: function(d) { return d[s.field];}, 
+        value: function(d) { return Math.sqrt(d[s.field]/Math.PI);}, 
         scale: d3.scale.log().range([2, 20]),
         map: function(d) { return s.scale(s.value(d));},
     }
