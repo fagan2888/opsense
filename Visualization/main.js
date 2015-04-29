@@ -11,7 +11,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         $scope.init = function(){
             $scope.loading = 0;
             $scope.reviews = [];
-            $scope.index = "whs";
+            $scope.index = "yelphealth";
             $scope.pattern = "";
             $scope.searchTerm = "";
             $scope.inter = true;
