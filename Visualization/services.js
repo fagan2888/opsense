@@ -2,7 +2,7 @@ var vizServices = angular.module('vizServices', ['elasticsearch']);
 
 vizServices.service('client', function (esFactory) {
     return esFactory({
-        host: 'vgc.poly.edu/projects/r2sense',
+        host: 'http://user:123456@vgc.poly.edu/projects/r2sense',
         apiVersion: '1.4'
     });
 });
@@ -11,7 +11,8 @@ vizServices.service('client', function (esFactory) {
 vizServices.factory('db', function(client) {
     var self = this;
     var client = client;
-
+    console.log(client);
+    
     self.get2 = function(index, filter, pattern, x, y, count){
         var limit = count | 500;
         var query = {};
