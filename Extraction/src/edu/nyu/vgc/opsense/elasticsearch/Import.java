@@ -79,7 +79,7 @@ public class Import {
     		.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
 		
                 
-                System.out.println(client.settings());
+                System.out.println(client.settings().getAsMap());
                 
 		Integer[] count = new Integer[1];
 		count[0] = 0;
