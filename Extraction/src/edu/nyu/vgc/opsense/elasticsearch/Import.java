@@ -70,7 +70,7 @@ public class Import {
 	public void go(){
             System.out.println("go");
         Settings settings = ImmutableSettings.settingsBuilder()
-                    .put("cluster.name", "opsensedb")
+                 //   .put("cluster.name", "opsensedb")
                     .put("shield.user", "es_admin:NYU2015")
                 .build();
         
