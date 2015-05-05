@@ -70,13 +70,13 @@ public class Import {
 	public void go(){
             System.out.println("go");
         Settings settings = ImmutableSettings.settingsBuilder()
-                 //   .put("cluster.name", "opsensedb")
+                    .put("cluster.name", "opsensedb")
                     .put("shield.user", "es_admin:NYU2015")
                 .build();
         
 		@SuppressWarnings("resource")
 		Client client = new TransportClient(settings)
-    		.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+    		.addTransportAddress(new InetSocketTransportAddress("128.238.182.5", 9300));
 		
                 
                 System.out.println(client.settings().getAsMap());
