@@ -146,7 +146,7 @@ vizServices.factory('db', function(client) {
                                 "terms" : { 
                                     "terms" : { 
                                         "exclude":"be .*|.* be|null .*|.* null",
-                                        "script":"doc['terms.g.tg'].value < doc['terms.d.tg'].value ? doc['terms.g.lm'].value + ' ' + doc['terms.d.lm'].value : doc['terms.d.lm'].value + ' ' + doc['terms.g.lm'].value",
+                                        "field":"key",
                                         "size":limit
                                     },
                                     "aggs":{

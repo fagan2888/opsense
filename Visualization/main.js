@@ -51,6 +51,12 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     pattern: "Noun+Adjective",
                     yField: "document.stars",
                     searchTerm: "service"
+                },
+                whs: {
+                    xMetric: "value_count",
+                    xField: "document.id",
+                    yMetric: "value_count",
+                    yField: "document.id"
                 }
             }
             window.onpopstate = function(event) {

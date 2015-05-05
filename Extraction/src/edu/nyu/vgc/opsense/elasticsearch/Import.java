@@ -6,11 +6,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -18,14 +18,11 @@ import javax.json.JsonReader;
 import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
-
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-
-import java.text.SimpleDateFormat;
 
 
 public class Import {
@@ -71,7 +68,10 @@ public class Import {
 	}
 	
 	public void go(){
-        Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", "opsensedb").build();
+        Settings settings = ImmutableSettings.settingsBuilder()
+                    .put("cluster.name", "opsensedb")
+                    .put("shield.user", "es_admin:NYU2015")
+                .build();
 		@SuppressWarnings("resource")
 		Client client = new TransportClient(settings)
     		.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
