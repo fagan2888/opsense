@@ -68,6 +68,7 @@ public class Import {
 	}
 	
 	public void go(){
+            System.out.println("go");
         Settings settings = ImmutableSettings.settingsBuilder()
                     .put("cluster.name", "opsensedb")
                     .put("shield.user", "es_admin:NYU2015")
@@ -77,7 +78,7 @@ public class Import {
 		Client client = new TransportClient(settings)
     		.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
 		
-                System.out.println("Starts");
+                
                 System.out.println(client.settings());
                 
 		Integer[] count = new Integer[1];
