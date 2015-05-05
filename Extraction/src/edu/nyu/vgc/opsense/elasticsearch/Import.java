@@ -76,7 +76,7 @@ public class Import {
         
 		@SuppressWarnings("resource")
 		Client client = new TransportClient(settings)
-    		.addTransportAddress(new InetSocketTransportAddress("128.238.182.5", 9300));
+    		.addTransportAddress(new InetSocketTransportAddress("128.238.182.64", 9300));
 		
                 
                 System.out.println(client.settings().getAsMap());
