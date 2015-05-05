@@ -76,6 +76,8 @@ public class Import {
 		Client client = new TransportClient(settings)
     		.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
 		
+                System.out.println(client.settings());
+                
 		Integer[] count = new Integer[1];
 		count[0] = 0;
 		Path path = Paths.get(this.source); 
