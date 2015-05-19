@@ -8,10 +8,29 @@ vizServices.service('client', function (esFactory) {
 });
 
 //Database   --------------------------------------------------------------------------
-vizServices.factory('db', function(client) {
+vizServices.factory('db', function(client, esFactory) {
     var self = this;
     var client = client;
-    console.log(client);
+    var host = "vgc.poly.edu/projects/r2sense";
+    var user = "user";
+    var pass = "123456";
+    self.password = function(usr, pass) { 
+        
+        if(pass == undefined)
+        {
+            user = "user"
+            pass = "123456"
+        } else {
+            user = usr;
+            pass = pass;
+        }
+        
+        client =  esFactory({
+            host: 'http://'+user+':'+pass+'@' + host,
+            apiVersion: '1.4'
+        });
+        
+    };
     
     self.get2 = function(index, filter, pattern, x, y, count){
         var limit = count | 500;
