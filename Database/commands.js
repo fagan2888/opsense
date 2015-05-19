@@ -41,4 +41,7 @@ nohup ./run.sh -c elasticsearch.Import -a "/home/vgc/cristianfelix/data/json/Yel
 
 nohup ./run.sh -c elasticsearch.Import -a "/home/vgc/cristianfelix/data/json/rateMyProfessor_fixed_ready.json ratemyprofessor 0 1" > outImport.txt &
 
+./run.sh -c elasticsearch.Import -a "/home/vgc/cristianfelix/data/json/whs.json whs 0 100000"
+
+
 nohup ./run.sh -c elasticsearch.Import -a "/home/vgc/cristianfelix/data/json/MYWorld_votes_all_fixed_ready.json myworld2 0 1000000" > outImport.txt &

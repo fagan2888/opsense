@@ -56,7 +56,8 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     xMetric: "value_count",
                     xField: "document.id",
                     yMetric: "value_count",
-                    yField: "document.id"
+                    yField: "document.id",
+                    password: true
                 }
             }
             window.onpopstate = function(event) {
@@ -65,7 +66,19 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         }
 
         $scope.$watch('index', function(newValue, oldValue) {
-            console.log('Index Changed');
+            if($scope.starters[newValue].password){
+                var pass = prompt('Please enter the password');
+                if(!pass){
+                    $scope.index = oldValue;
+                    return;
+                } else {
+                    db.password("whs_usr2", pass);
+                }
+                
+            } else {
+                db.password();  
+            }
+            
             if(!$scope.preventReload)
                 $scope.reloadAll();  
         });
@@ -100,7 +113,6 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             document.title = Title;
             $scope.currentStates = state;
             history.pushState(state, Title, null);
-            console.log(state);
             document.title = "OpSense";
         }
     
@@ -144,6 +156,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             $scope.searchTerm = "";
             $scope.inter = true;
             $scope.termFilter = "";
+            
             $scope.loadMeta(function (result){
                 $scope.load(true);
             })
@@ -394,7 +407,6 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         }
         
         $scope.setState = function(state){
-            console.log(state);
             $scope.preventReload = true;
             $scope.index = state.index;
             $scope.pattern = state.pattern;
@@ -420,6 +432,12 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         $scope.loadMeta = function(callback){
             $scope.loading++;
             db.mapping($scope.index).then(function(result){
+                if(result.status == 401)
+                {
+                    alert('Authentication problem');
+                    location.reload();
+                }
+                
                 if(!result){
                     alert('Sorry! a problem occurred. The page will be reloaded');
                     location.reload();
@@ -716,7 +734,6 @@ function Scatter(selector){
         if(self["to_"+operation])
             self["to_"+operation] (operation, axis);
         else {
-            console.log('Changing back');
             y.value = function(d) { return d[y.field];}; 
             s.value = function(d) {
                 return d[s.field];
@@ -744,7 +761,7 @@ function Scatter(selector){
         x.axis = d3.svg.axis().scale(x.scale).orient("bottom")
             .innerTickSize(-innerHeight)
             .outerTickSize(0)
-            .tickValues(mainData.x_termsIndex.map( function(d,ix) { console.log('mapping'); return ix; }))
+            .tickValues(mainData.x_termsIndex.map( function(d,ix) { return ix; }))
             .tickPadding(10);
         
         y.value = function(d) {
@@ -765,7 +782,6 @@ function Scatter(selector){
     }
     
     self.resize = function(){
-        console.log('update');
         width = dom.element.node().getBoundingClientRect().width;
         innerWidth = width - margin.left - margin.right,
         x.scale.range([0, innerWidth]),
