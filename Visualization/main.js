@@ -53,8 +53,8 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     searchTerm: "service"
                 },
                 whs: {
-                    xMetric: "value_count",
-                    xField: "document.id",
+                    xMetric: "terms",
+                    xField: "document.country",
                     yMetric: "value_count",
                     yField: "document.id",
                     password: true
