@@ -63,9 +63,12 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             window.onpopstate = function(event) {
                 $scope.back(event);
             };
+            //_trackEvent(category, action, opt_label, opt_value, opt_noninteraction)
+            _gaq.push(['_trackEvent', 'Page', 'Started', '']);
         }
 
         $scope.$watch('index', function(newValue, oldValue) {
+            _gaq.push(['_trackEvent', 'Index', 'Changed', newValue]);
             if($scope.starters[newValue].password){
                 var pass = prompt('Please enter the password');
                 if(!pass){
@@ -121,6 +124,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         }
         
         $scope.openReview = function (review) {
+            _gaq.push(['_trackEvent', 'Review', 'Opened', review.source.document.id]);
             $scope.showModal = true;
             $scope.selectedReview = review;
         }
@@ -143,7 +147,9 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             if(!event.shiftKey){
                 $scope.clear(true);
             }
-
+            
+            _gaq.push(['_trackEvent', 'Term', 'Selected', i.key]);
+            
             i._selected = !i._selected;
             $scope.setSimilar();
             $scope.refresh(true);
@@ -167,6 +173,8 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
             $scope.mainData.buckets = newBuckets;
             $scope.setData($scope.mainData);
             $scope.refresh();
+            console.log(d.key);
+            _gaq.push(['_trackEvent', 'Term', 'Remove', d.key]);
             $scope.saveState("remove",[d]);
         }
         
@@ -177,6 +185,7 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                     if(item.key == d.key){
                         result = false;
                         $scope.saveState("remove",item);
+                        _gaq.push(['_trackEvent', 'Term', 'Remove Selected', item.key]);
                     }
                 })
                 return result;
@@ -215,8 +224,10 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
                 $scope.data[i]._highlight = false;
                 $scope.data[i]._similar = 0;
             }
-            if(!noSave)
+            if(!noSave){
                 $scope.saveState("clear");
+                _gaq.push(['_trackEvent', 'Term', 'Clear', '']);
+            }
         }
         
         $scope.clearAndRefresh = function(){
@@ -371,11 +382,16 @@ VizApp.controller('MainController', function ($scope, db, analytics, $modal, $lo
         $scope.load = function(ReloadedAll){
             if(!$scope.preventReload){
                 $scope.loading++;
-
+                _gaq.push(['_trackEvent', 'Data', 'Load', 
+                           pattern + "," 
+                           + $scope.searchTerm + ","
+                           + "y_" + $scope.yOperation.field.text+":"+ $scope.yOperation.operation+ ", "
+                           + "x_" + $scope.xOperation.field.text+":"+ $scope.xOperation.operation]);
                 var pattern = $scope.pattern;
                 if(pattern.length == 0){
                     pattern = "Noun|Adjective|Verb+Noun|Adjective|Verb";
                 }
+                
                 db.get2($scope.index, $scope.searchTerm,pattern,$scope.xOperation , $scope.yOperation).then(function(result){
                     result = analytics.preProcess(result, $scope.xOperation.operation, $scope.yOperation.operation);
                     $scope.setData(result);
