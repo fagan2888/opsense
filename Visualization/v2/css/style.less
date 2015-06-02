@@ -1,0 +1,491 @@
+/*Global variables --------------------------------------------*/
+@blue: #0BBAF4;
+@orange: #FE7328;
+@lighGray: #A1A1A1;
+@darkGray: #000;
+@shadow: #eee;
+
+@similar1: #7ACC5A;
+@similar2: #FFC539 ;
+@highlight: #0BBAF4;
+@selected: #FE7328;
+
+/*Global class --------------------------------------------*/
+span.similar1 {
+    color: @similar1;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+li.similar1{
+    background-color: @similar1;
+    color: white;
+}
+
+span.similar2 {
+    color: @similar2;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+li.similar2{
+    background-color: @similar2;
+    color: white;
+}
+
+em{
+    font-style: normal;
+    background-color: #e2f1f5;
+}
+/*Layout ----------------------------------------------*/
+html {
+    body{
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        margin: 0px;
+        color: @darkGray;
+    }
+
+    input{
+        border-radius: 10px;
+        border: solid 1px @shadow;
+    }
+    
+    
+     input[type=text],input[type=number],input[type=search], textarea {
+      transition: all 0.30s ease-in-out;
+      outline: none;
+      padding: 3px 8px 3px 8px;
+    }
+
+    input[type=text]:focus,input[type=number]:focus,input[type=search]:focus, textarea:focus {
+      box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+      padding: 3px 8px 3px 8px;
+      border: 1px solid rgba(81, 203, 238, 1);
+    }
+
+    button{
+        outline: none;
+        color: white;
+        background-color: @blue;
+        border: none;
+        border-radius: 10px;   
+        padding: 2px 10px 3px 10px; 
+        height: 20px;
+        cursor: pointer;
+    }
+    button:focus{
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+    }
+    button.btn-second{
+       background-color: @orange; 
+    }
+    
+    select{
+        outline: none;
+        color: @darkGray;
+        background-color: white;
+        border: solid 1px @shadow;
+        border-radius: 10px;
+        height: 20px;
+    }
+    h1{
+        font-size: 24px;
+    }
+    h2{
+        font-size: 14px;
+        margin: 0px;
+        padding: 0px;
+        margin-top: 20px;
+        margin-bottom: 5px;
+        border-bottom: solid 1px @shadow;
+    }
+}
+
+@ToolBarHeight: 45px;
+#toolBar{
+    padding: 5px;
+    box-shadow: 1px 1px 1px @shadow;
+    height: @ToolBarHeight;
+    overflow: auto;
+    white-space: nowrap;
+    position: fixed;
+    left: 0px;
+    top:0px;
+    right: 0px;
+    background-color: white;
+    z-index: 1005;
+    h1{
+        color: @blue;
+        margin: 0px;
+        padding: 0px;
+        padding-left:5px; 
+        display: inline-block;
+        height: 35px;
+        margin-right: 20px;
+        font-weight: 300;
+        vertical-align: middle;
+    }
+    ul{
+        padding-left: 0px;
+        margin: 0px;
+        list-style: none;
+        display: inline-block;
+        li{
+            margin: 0px;
+            padding-right: 12px;
+            padding-left: 10px;
+            display: inline-block;
+            height: 20px;
+            vertical-align: middle;
+      
+            border-left: solid 1px @shadow;
+            
+            label{
+                vertical-align: middle;
+            }
+        }
+    }
+}
+
+@ParamsViewWidth: 135px;
+#paramsView{
+    position: fixed;
+    width: @ParamsViewWidth;
+    padding-left: 10px;
+    top: @ToolBarHeight;
+    ul{
+        padding-left: 0px;
+        margin: 0px;
+        
+        li{
+            list-style: none;
+        }
+        label{
+            display: block;
+        }
+    }
+}
+
+/*Main View --------------------------------------------*/
+#mainView{
+}
+@TermsViewWidth: 135px;
+#termsView{
+    position: fixed;
+    left: @ParamsViewWidth+22;
+    bottom: 0px;
+    top: @ToolBarHeight;
+    width: @TermsViewWidth;
+    input{
+        width: 130px;
+    }
+    .tools{
+        padding-bottom:5px;
+        border-bottom: solid 1px #ccc;
+        label{
+            font-size: 12px;
+        }
+        select{
+            width: 100px;
+        }
+        li{
+            margin-bottom: 2px;
+            
+        }
+    }
+    .termList{
+        position: absolute;
+        bottom: 0px;
+        top: 100px;
+        width: 135px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        
+        .highlighted{
+            background-color: @highlight;
+            color: white;
+        }
+        
+        .selected{
+            background-color: @selected;
+            color: white;
+        }
+    }
+    ul{
+        padding-left: 0px;
+        margin: 0px;
+        font-size: 10px;
+        
+        li{
+            white-space: nowrap;
+            cursor: pointer;
+            list-style: none;
+            user-select: none;
+            padding-left: 5px;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+        }
+    }
+    
+}
+
+#Visualization{
+}
+
+@DocumentViewWidth: 200px;
+#DocumentView{
+    position: fixed;
+    right: 0;
+    bottom: 0px;
+    top: @ToolBarHeight+10;
+    width: @DocumentViewWidth;
+    overflow: auto;
+    ul{
+        padding-left: 0px;
+        margin: 0px;
+        font-size: 12px;
+        
+        li{
+            margin-top: 5px;
+            border-bottom: solid 1px #ccc;
+            text-align: justify;
+            padding-right: 2px;
+        }
+        .entity{
+            color: @blue;
+        }
+        .reviewInfo{
+            font-size: 10px;
+            white-space: nowrap;
+            color: Gray;
+        }
+    }
+    i{
+        color: @similar1;
+        font-weight: bold;
+        font-style: normal;
+    }
+    b{
+        color: @similar2;
+        
+    }
+}
+
+#documentDetailView{
+    position: fixed;
+    z-index: 110;
+    top:0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    background-color: rgba(255, 255, 255, 0.76);
+    
+    .window{
+        position: absolute;
+        padding: 10px;
+        top: 70px;
+        bottom: 40px;
+        left: 40px;
+        right: 40px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 5px 5px 10px #aaa;
+        border: solid 1px #ccc;
+        h1{
+            margin: 0px;
+            padding: 0px;
+            border-bottom: solid 1px #ccc;
+            
+            a{
+                position: absolute;
+                right: 10px;
+                font-size: 14px;
+                color: @orange;
+                cursor: pointer;
+            }
+        }
+        .details{
+            position: absolute;
+            padding-left: 10px;
+            top: 50px;
+            left: 10px;
+            width: 400px;
+            bottom: 10px;
+            overflow: auto;
+            border: solid 1px #ccc;
+            box-shadow: 0px 0px 5px #ccc inset; 
+        }
+        .text{
+            position: absolute;
+            padding-left: 10px;
+            top: 50px;
+            left: 430px;
+            right: 10px;
+            bottom: 10px;
+            overflow: auto;
+            i{
+                color: @similar1;
+                font-weight: bold;
+                font-style: normal;
+            }
+            b{
+                color: @similar2;
+
+            }
+        }
+        
+    }
+}
+
+#Visualization{
+    position: fixed;
+    left: 300px;
+    bottom: 0px;
+    top: 55px;
+    right: 210px;
+    padding: 5px;
+    overflow: auto;
+    
+    .axis path,
+        .axis line {
+          fill: none;
+          stroke: #ccc;
+            stroke-width:1px;
+          shape-rendering: crispEdges;
+
+        }
+    .axis{
+        font-size: 10px;
+    }
+    .tick line{
+        stroke:@shadow;
+    }
+    .tick text{
+        fill:#aaa;
+    }
+    .domain{
+        stroke:@shadow;
+    }
+    #vizBoard{
+        position: absolute;
+        bottom: 0px;
+        top: 65px;
+        left: 0px;
+        right: 0px;
+        overflow: auto;
+    }
+}
+
+.loading{
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: white;
+    opacity: 0.8;
+    text-align: center;
+    z-index: 5;
+    h1{
+        margin-top: 200px;
+    }
+}
+.hidden{
+        visibility: hidden;
+    }
+
+#scatter{
+    .dot{
+        opacity: 0.5;
+        fill: #a2a2a2;
+        cursor: pointer;
+    }
+    .selected{
+        fill: @selected;
+        stroke: black;
+        stroke-width: 1px;
+        opacity: 1;
+    }
+    .similar1 {
+         fill: @similar1;
+        stroke: black;
+        stroke-width: 1px;
+    }
+    .similar2 {
+         fill: @similar2;
+        stroke: black;
+        stroke-width: 1px;
+    }
+    
+    .highlight{
+        fill: @highlight;
+        stroke: black;
+        stroke-width: 1px;
+        opacity: 1;
+    }
+    
+    
+    .sibling{
+        fill: #d6eaf0;
+        cursor: pointer;
+        opacity: 1;
+        stroke: black;
+        stroke-width: 1px;
+        
+    }
+}
+
+#heatMapMultiple{
+    .category{
+        width: 300px;
+        float:left;
+        margin-bottom: 10px;
+        margin-left: 10px;
+        span{
+            display: inline-block;
+            width: 300px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    }
+    .square{
+        height: 8px;
+        width: 8px;
+        background-color: #ccc;
+        float: left;
+        margin-right: 1px;
+        margin-bottom: 1px;
+        cursor: pointer;
+    }
+    .highlighted{
+        box-shadow: 0px 0px 5px red;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

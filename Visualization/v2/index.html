@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html ng-app="OpSense">
+<head>
+    <title>OpSense</title>
+    <meta charset="UTF-8">
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="robots" content="noindex">
+    <meta name="googlebot" content="noindex">
+    <link rel="shortcut icon" href="img/favico.png" />
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300, bold' rel='stylesheet' type='text/css'>
+    <link href="css/style.css" type="text/css" rel="stylesheet">
+    <script src="vendors/angular.min.js"></script>
+    <script src="vendors/angular-resource.min.js"></script>
+    <script src="vendors/angular-sanitize.min.js"></script>
+    <script src="vendors/d3.min.js"></script>
+    <script src="vendors/elasticsearch.angular.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/visualization.js"></script>
+</head>
+<body ng-controller="mainCtrl" ng-init="init()">
+    <div id="toolBar">
+        <h1>OpSense</h1>
+        <ul>
+            <li>
+               <label>Dataset: </label>
+               <select ng-model="state.index" ng-options="i.desc for i in indices"></select>
+            </li>
+            <li>
+               <label>Pattern: </label>
+               <input ng-model="state.pattern" ng-enter="loadData()" type="text">&nbsp;&nbsp;
+               
+               <label>Search: </label>
+               <input type="search" ng-enter="loadData()" ng-model="state.search">&nbsp;&nbsp;
+                
+               <label>Limit: </label>
+               <input type="number" style="width:40px" ng-model="state.limit">&nbsp;&nbsp;
+               
+               <label>Reviews: </label>
+               <label>{{data.global.count}}</label>
+            </li>
+            <li>
+               <button ng-click="loadData()">Load</button>
+            </li>
+            <li>
+               <button ng-click="reset()">Reset</button>
+            </li>
+            <li>
+               <button ng-click="goBack()">Back</button>
+            </li>
+       </ul>
+    </div>
+    <div id="paramsView">
+        <ul>
+           <li><h2>x Axis</h2></li>
+           <li>
+               <label>Field</label>
+               <select ng-model="state.xField" ng-options="field.field group by field.group for field in state.fields | filter: {type: '!date'}"></select>
+           </li>
+           <li>
+               <label>Metric</label>
+               <select ng-model="state.xMetric" ng-options="metric.desc for metric in allowedMetrics(state.xField.type) | filter: {x: true}"></select>
+           </li>
+       </ul>
+       <ul>
+           <li><h2>y Axis</h2></li>
+           <li>
+                <label>Field</label>
+                <select ng-model="state.yField"  ng-options="field.field group by field.group for field in state.fields | filter: {type: '!date'}"></select>
+
+           </li>
+           <li>
+               <label>Metric</label>
+               <select ng-model="state.yMetric" ng-options="metric.desc for metric in allowedMetrics(state.yField.type) | filter: {y: true}"></select>
+           </li>
+       </ul>
+       <hr>
+       <div>
+           <label>Visualization</label>
+           <select ng-model="state.visualization">
+               <option value="scatter">Scatter Plot</option>
+               <option value="heatMap">Heat Map</option>
+               <option value="heatMapMultiple">Multiple Heat Map</option>
+           </select>
+       </div>
+    </div>
+    <div id="mainView">
+        <div id="termsView">
+            <ul class="tools">
+                <li><h2>Terms</h2></li>
+                <li>
+                    <ul class="selectedList" ng-show="selectedTerms().length > 0">
+                        <li ng-repeat="term in  selectedTerms()">
+                            <span class="similar1">{{ term.key.split(" ")[0]}}</span>
+                            <span class="similar2">{{ term.key.split(" ")[1]}}</span>
+                        </li>
+                        <li><button class="btn-second" ng-click="removeSelected()">Remove</button></li>
+                    </ul>
+                </li>
+                <li><input ng-model="state.termFilter" type="search"></li>
+                <li>
+                   <label>Sort: </label>
+                   <select ng-model="state.termSort" ng-options="f.desc for f in termSortOptions"></select>
+                </li>
+            </ul>
+            <ul class="termList" id="termList">
+                <li ng-mouseover="highlight(term)" 
+                    ng-click="select(term, $event)" 
+                    ng-mouseleave="unHighlight(term)" 
+                    ng-right-click="remove(term)"
+                    ng-class="{selected: term.selected, highlighted: term.highlighted, similar1: term.similar1, similar2: term.similar2}"
+                    ng-repeat="term in filteredTerms() | orderBy:state.termSort.field:state.termSort.reverse">
+                    {{ term.key }}
+                </li>
+            </ul>
+        </div>
+        <div id="Visualization">
+            <viz-title id="viz-title"></viz-title>
+            <div id="vizBoard">
+                <scatter ng-show="state.visualization == 'scatter'" id="scatter"></scatter>
+                <heatmap ng-show="state.visualization == 'heatMap'" id="heatMap"></heatmap>
+                <heatmap-multiple ng-show="state.visualization == 'heatMapMultiple'"></heatMapMultiple>
+            </div>
+        </div>
+        <div id="DocumentView">
+            <ul class="documentList">
+                <li ng-repeat="doc in data.documents" ng-click="state.selectedDocument = doc"><span class="entity">@{{doc.entity.name}}</span> - <span ng-bind-html="trustHTML(doc.snippet)"></span></li>
+            </ul>
+        </div>
+    </div>
+    <div id="documentDetailView" ng-show="state.selectedDocument" >
+        <div class="window" >
+            <h1>{{state.selectedDocument.entity.name}} <a ng-click="state.selectedDocument = undefined">x close</a></h1>
+            <div class="details">
+               <h2>Document</h2>
+                <pre>{{ state.selectedDocument.document | json}}</pre>
+                <h2>Entity</h2>
+                <pre>{{ state.selectedDocument.entity | json}}</pre>
+                <h2>Author</h2>
+                <pre>{{ state.selectedDocument.author | json}}</pre>
+            </div>
+            <div class="text"><span ng-bind-html="trustHTML(state.selectedDocument.html)"></span></div>
+        </div>
+    </div>
+    <div ng-show="loading > 0" class="loading">
+       <h1>Loading...</h1> 
+    </div>
+</body>
+</html>
